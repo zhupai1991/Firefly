@@ -11,7 +11,7 @@ InputParameters validParams<GopherApp>();
 class GopherApp : public MooseApp
 {
 public:
-  GopherApp(const std::string & name, InputParameters parameters);
+  GopherApp(InputParameters parameters);
   virtual ~GopherApp();
 
   static void registerApps();

@@ -13,10 +13,9 @@ InputParameters validParams<GopherApp>()
   return params;
 }
 
-GopherApp::GopherApp(const std::string & name, InputParameters parameters) :
-    MooseApp(name, parameters)
+GopherApp::GopherApp(InputParameters parameters) :
+    MooseApp(parameters)
 {
-  srand(processor_id());
 
   Moose::registerObjects(_factory);
   ModulesApp::registerObjects(_factory);
