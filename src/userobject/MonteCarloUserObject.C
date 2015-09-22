@@ -22,7 +22,7 @@ void MonteCarloUserObject::execute()
 
 	Point p;
 
-	std::cout << _current_elem->() <<std::endl;
+	std::cout << _current_elem->_nodes() <<std::endl;
 
 //	if(line_segment.intersect(plane, p))
 //		std::cout << p << std::endl;
