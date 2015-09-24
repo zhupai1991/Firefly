@@ -6,6 +6,8 @@
 #include "MooseRandom.h"
 
 #include "libmesh/plane.h"
+#include "SideElement.h"
+
 
 template<>
 InputParameters validParams<MonteCarloUserObject>()
@@ -24,12 +26,17 @@ MonteCarloUserObject::MonteCarloUserObject(const InputParameters & parameters) :
 
 void MonteCarloUserObject::execute()
 {
-	int particle_count=1000000;
-	vector<const Elem*> elem_vec;
-	int n_elem=elem_vec.size();
-	float RD[n_elem][n_elem];
+	SideElement side_element(_current_elem, _normals[0]);
 
-	for(int i=0;i<particle_count;i++)
+
+
+	std::cout << side_element.SendRay().p0;
+//	int particle_count=1000000;
+//	vector<const Elem*> elem_vec;
+//	int n_elem=elem_vec.size();
+//	float RD[n_elem][n_elem];
+//
+//	for(int i=0;i<particle_count;i++)
 
 	vector<const Elem*> elem_vec;
 	elem_vec.push_back(_current_elem);
@@ -72,6 +79,7 @@ bool MonteCarloUserObject::sideIntersectedByLine(const RayLine& ray, const Elem*
 	}
 
 	return intersect;
+
 }
 
 /**
