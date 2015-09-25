@@ -2,6 +2,8 @@
 #pragma once
 
 #include "LineSegment.h"
+#include "libmesh/elem.h"
+#include "libmesh/plane.h"
 #include <vector>
 using std::vector;
 
@@ -11,11 +13,12 @@ public:
 	RayLine();
 	RayLine(const Point &p0, const Point &p1, Real lenght);
 	RayLine(const Point &p0, const Point &normal);
-	Point normal;
-	Point p0;
+	bool sideIntersectedByLine(const Elem* side, Point& point);
+	Point _normal;
+	Point _p0;
 //	Point & start(){return _p0;}
-private:
 	Real _lenght;
+private:
 //	vector<SideElement*> path;
 
 };

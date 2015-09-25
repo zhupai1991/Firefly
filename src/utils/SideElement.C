@@ -4,6 +4,7 @@
 #include "LineSegment.h"
 #include "MooseRandom.h"
 //#include "RandomInterface.h"
+using namespace std;
 
 SideElement::SideElement(const Elem *elem, const Point normal) :
 	_elem(elem),
@@ -13,7 +14,7 @@ SideElement::SideElement(const Elem *elem, const Point normal) :
 
 RayLine SideElement::SendRay()
 {
-	MooseRandom::seed(0);
+//	MooseRandom::seed(0);
 	Real theita = 2*pi*MooseRandom::rand();
 
 	unsigned int dim = _elem->dim();
@@ -52,6 +53,9 @@ RayLine SideElement::SendRay()
 
 		else
 		{
+			std::cout << (M-p).unit() << std::endl;
+			cout << "p:" <<p <<endl;
+//			std::cout << RayLine(p,_normal).normal << std::endl;
 			return RayLine(p,(M-p).unit());
 		}
 	}
@@ -59,14 +63,14 @@ RayLine SideElement::SendRay()
 	else // 1D
 	{
 		Point p = _elem->centroid();
-		return RayLine(p,_normal);
+		return RayLine(p,p+100000*_normal);
 	}
 
 }
 
-RayLine SideElement::DiffuseReflectRay(RayLine* rayline, Point point)
+RayLine SideElement::DiffuseReflectRay(const RayLine* rayline, Point point)
 {
-	MooseRandom::seed(0);
+//	MooseRandom::seed(0);
 	Real theita = 2*pi*MooseRandom::rand();
 
 	unsigned int dim = _elem->dim();
@@ -115,9 +119,9 @@ RayLine SideElement::DiffuseReflectRay(RayLine* rayline, Point point)
 
 }
 
-RayLine SideElement::MirrorsReflectRay(RayLine* rayline, Point point)
+RayLine SideElement::MirrorsReflectRay(const RayLine* rayline, Point point)
 {
-	Point normal_in=rayline->normal;
+	Point normal_in=rayline->_normal;
 	Point normal_out=normal_in+_normal*(2*cos((_normal*normal_in)/(normal_in.size()*_normal.size())));
 
 	return RayLine(point,normal_out);

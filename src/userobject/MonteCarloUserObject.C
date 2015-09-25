@@ -4,9 +4,8 @@
 #include "libmesh/elem.h"
 #include "RayLine.h"
 #include "MooseRandom.h"
-
 #include "libmesh/plane.h"
-#include "SideElement.h"
+
 
 
 template<>
@@ -24,85 +23,117 @@ MonteCarloUserObject::MonteCarloUserObject(const InputParameters & parameters) :
 {
 }
 
+
 void MonteCarloUserObject::execute()
 {
 	SideElement side_element(_current_elem, _normals[0]);
 
-
-
-	std::cout << side_element.SendRay().p0;
+	std::cout << side_element.SendRay()._normal << std::endl;
+//
 //	int particle_count=1000000;
 //	vector<const Elem*> elem_vec;
 //	int n_elem=elem_vec.size();
 //	float RD[n_elem][n_elem];
 //
 //	for(int i=0;i<particle_count;i++)
-
-	vector<const Elem*> elem_vec;
-	elem_vec.push_back(_current_elem);
-
-	RayLine ray_line(Point(1, 0, 1), Point(0, 0, -1));
-	Plane plane(Point(0, 0, 0), Point(0, 1, 1));
-	Point p;
-//	int k=Sur_elemIntersectedByLine(ray_line, elem_vec, p);
-
-
-//	std::cout << k << std::endl;
-
-}
-
-/**
- * Figure out whether a Elem is intersected by a line or not.
- *
- * @return true if the Elem intersected by the line.  Will return -1 if it doesn't
- */
-bool MonteCarloUserObject::sideIntersectedByLine(const RayLine& ray, const Elem* side, Point& point)
-{
-	bool intersect(false);
-	unsigned int dim = side->dim();
-	if (dim == 3)
-	{
-		Plane plane(*side->get_node(0), *side->get_node(1), *side->get_node(2));
-		intersect = ray.intersect(plane, point);
-	}
-	else if (dim == 2)
-	{
-		RayLine side_ray(*side->get_node(0), *side->get_node(1));
-		intersect = ray.intersect(side_ray, point);
-	}
-
-	else // 1D
-	{
-		intersect = ray.contains_point(*side->get_node(0));
-		if (intersect)
-		point = *side->get_node(0);
-	}
-
-	return intersect;
-
-}
-
-/**
- * Figure out which (if any) Elem is intersected by a line.
- *
- * @return The Elem that is intersected by the line.  Will return -1 if it doesn't intersect any elem
- */
-//int MonteCarloUserObject::Sur_elemIntersectedByLine(const RayLine & line_segment, const std::vector<Elem*> elem_vec, Point &intersection_point)
-//{
-//	unsigned int n_elem = elem_vec.size();
-//	int i_in=0;
 //
-//	for (unsigned int i=0; i<n_elem; i++)
+//	vector<const Elem*> elem_vec;
+//	elem_vec.push_back(_current_elem);
+//
+//	Point p;
+//	RayLine ray_line(Point(1, 0, 1), Point(0, 0, -1),10000);
+//	std::cout << ray_line.normal << std::endl;
+//	bool a=ray_line.sideIntersectedByLine(ray_line,elem_vec[0],p);
+//	std::cout << p << std::endl;
+
+}
+
+
+
+
+
+
+
+//int MonteCarloUserObject::Which_SideelementIntersectedByLine(const RayLine& ray, SideElement * sideelement_i, vector<const SideElement*> sideelement_vec, Point point)
+//{
+//	int j_max=sideelement_vec.size();
+//	int j_wanted=-1;
+//	SideElement * elem= sideelement_i;
+//	Point p=ray._p0;
+//	point=ray._p1;
+//
+//	for(int j=0; j<j_max; j++)
 //	{
-////		if (elem_vec[i]->contains_point(line_segment.start())) // Don't search the "not_side"
+//		if(sideelement_vec[j] == elem)
 //			continue;
 //
-//		if(sideIntersectedByLine(line_segment, elem_vec[i], intersection_point))
-//		{
+//		if(!(ray.sideIntersectedByLine(ray,sideelement_vec[j],p)))
+//			continue;
 //
+//		else if((p-ray.p0).size()>(point-ray.p0).size())
+//			continue;
+//
+//		else
+//		{
+//			j_wanted=j;
+//			point=p;
 //		}
-//		return i;
 //	}
 //
-//	return -1;   // Didn't find one
+//	return j_wanted;
+//}
+
+
+//int MonteCarloUserObject::Find_j_of_RDij(SideElement * sideelement_i, vector<const SideElement*> sideelement_vec)
+//{
+//	int j=-1;
+//	int j_of_RDij;
+//	int k=0;
+//	bool charge=true;
+//	SideElement * elem= sideelement_i;
+//	const RayLine rayline_in;
+//	const RayLine rayline_out;
+//	Point p;
+//
+//	while (charge || (k < sideelement_i->MaxReflectCount) )
+//	{
+//		rayline_in=elem->SendRay();
+//
+//		j=Which_SideelementIntersectedByLine(rayline_in, sideelement_i, sideelement_vec, p);
+//
+//		if(j==-1)
+//			return -1;
+//
+//		else if(MooseRandom::rand()<sideelement_vec[j]->Absorptivity)
+//		{
+//			charge=false;
+//			j_of_RDij=j;
+//			break;
+//		}
+//
+//		else if(MooseRandom::rand()<sideelement_vec[j]->Diffuse_Reflectivity)
+//		{
+//			rayline_out=sideelement_vec[j]->DiffuseReflectRay(rayline_in,p);
+//			rayline_in=rayline_out;
+//			j_of_RDij=j;
+//			k++;
+//			continue;
+//		}
+//
+//		else
+//		{
+//			rayline_out=sideelement_vec[j]->MirrorsReflectRay(rayline_in,p);
+//			rayline_in=rayline_out;
+//			j_of_RDij=j;
+//			k++;
+//			break;
+//		}
+//	}
+//
+//	if(!charge)
+//		return j_of_RDij;
+//
+//	else if(k==sideelement_i->MaxReflectCount)
+//		return j_of_RDij;
+//
 //}

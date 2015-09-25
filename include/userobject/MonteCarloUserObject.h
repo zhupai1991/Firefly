@@ -3,6 +3,7 @@
 
 #include "SideUserObject.h"
 #include "RandomInterface.h"
+#include "SideElement.h"
 #include <vector>
 using std::vector;
 
@@ -15,6 +16,8 @@ public RandomInterface
 
 public:
 	MonteCarloUserObject(const InputParameters & parameters);
+	int Which_SideelementIntersectedByLine(const RayLine& ray, SideElement * sideelement_i, vector<const SideElement*> sideelement_vec, Point point);
+	int Find_j_of_RDij(SideElement * sideelement_i, vector<const SideElement*> sideelement_vec);
 
 protected :
 	virtual void initialize(){};
@@ -22,10 +25,7 @@ protected :
 	virtual void execute();
 	virtual void threadJoin(const UserObject & uo){};
 
-	bool sideIntersectedByLine(const RayLine &ray, const Elem *side, Point &point);
-
-
-//	int Sur_elemIntersectedByLine(const RayLine & line_segment, const std::vector<Elem*> elem_vec, Point &intersection_point);
+//	bool sideIntersectedByLine(const RayLine &ray, const Elem *side, Point &point);
 
 
 };
