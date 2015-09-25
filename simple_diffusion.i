@@ -13,7 +13,7 @@
 [UserObjects]
   [./montecarlo]
     type = MonteCarloUserObject
-    boundary = '0'
+    boundary = 'left'
   [../]
 []
 

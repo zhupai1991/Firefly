@@ -6,7 +6,7 @@
 #include "MooseRandom.h"
 #include "libmesh/plane.h"
 
-
+using namespace std;
 
 template<>
 InputParameters validParams<MonteCarloUserObject>()
@@ -23,15 +23,41 @@ MonteCarloUserObject::MonteCarloUserObject(const InputParameters & parameters) :
 {
 }
 
+void MonteCarloUserObject::initialize()
+{
+    vector<BoundaryName> boundary = getParam<std::vector<BoundaryName> >("boundary");
+    for(vector<BoundaryName>::iterator it = boundary.begin(); it != boundary.end(); ++it)
+    	std::cout << *it <<endl;
+
+    MeshBase & mesh = _mesh.getMesh();
+    const BoundaryInfo &bnd_info = mesh.get_boundary_info();
+    MeshBase::const_element_iterator   el  = mesh.active_elements_begin();
+    const MeshBase::const_element_iterator end_el = mesh.active_elements_end();
+    for ( ; el != end_el ; ++el)
+     {
+       const Elem *elem = *el;
+
+       for (unsigned int side=0; side < elem->n_sides(); ++side)
+       {
+         if (elem->neighbor(side))
+           continue;
+
+         Elem *elem_side = elem->side(side).get();
+
+         cout << bnd_info.boundary_id(elem, side) << endl;
+       }
+     }
+//	_all_element.push_back();
+}
 
 void MonteCarloUserObject::execute()
 {
-	SideElement side_element(_current_elem, _normals[0]);
-
+	SideElement side_element(_current_elem, -_normals[0]);
+//
 	std::cout << side_element.SendRay()._normal << std::endl;
 //
 //	int particle_count=1000000;
-//	vector<const Elem*> elem_vec;
+	vector<const Elem*> elem_vec;
 //	int n_elem=elem_vec.size();
 //	float RD[n_elem][n_elem];
 //
@@ -54,34 +80,34 @@ void MonteCarloUserObject::execute()
 
 
 
-//int MonteCarloUserObject::Which_SideelementIntersectedByLine(const RayLine& ray, SideElement * sideelement_i, vector<const SideElement*> sideelement_vec, Point point)
-//{
-//	int j_max=sideelement_vec.size();
-//	int j_wanted=-1;
-//	SideElement * elem= sideelement_i;
-//	Point p=ray._p0;
-//	point=ray._p1;
-//
-//	for(int j=0; j<j_max; j++)
-//	{
-//		if(sideelement_vec[j] == elem)
-//			continue;
-//
-//		if(!(ray.sideIntersectedByLine(ray,sideelement_vec[j],p)))
-//			continue;
-//
-//		else if((p-ray.p0).size()>(point-ray.p0).size())
-//			continue;
-//
-//		else
-//		{
-//			j_wanted=j;
-//			point=p;
-//		}
-//	}
-//
-//	return j_wanted;
-//}
+int MonteCarloUserObject::Which_SideelementIntersectedByLine(RayLine& ray, SideElement * sideelement_i, vector<const SideElement*> sideelement_vec, Point point)
+{
+	int j_max=sideelement_vec.size();
+	int j_wanted=-1;
+	SideElement * elem= sideelement_i;
+	Point p=ray._p0;
+	point=ray._p1;
+
+	for(int j=0; j<j_max; j++)
+	{
+		if(sideelement_vec[j] == elem)
+			continue;
+
+		if(!(ray.sideIntersectedByLine(sideelement_vec[j]->_elem,p)))
+			continue;
+
+		else if((p-ray._p0).size()>(point-ray._p0).size())
+			continue;
+
+		else
+		{
+			j_wanted=j;
+			point=p;
+		}
+	}
+
+	return j_wanted;
+}
 
 
 //int MonteCarloUserObject::Find_j_of_RDij(SideElement * sideelement_i, vector<const SideElement*> sideelement_vec)

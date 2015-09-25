@@ -16,6 +16,7 @@ public:
 	bool sideIntersectedByLine(const Elem* side, Point& point);
 	Point _normal;
 	Point _p0;
+	Point _p1;
 //	Point & start(){return _p0;}
 	Real _lenght;
 private:

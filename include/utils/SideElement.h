@@ -19,9 +19,10 @@ public:
 	Real Mirrors_Reflectivity;
 	Real RD();
 	int MaxReflectCount;
+	const Elem * _elem;
 
 
 protected:
-	const Elem * _elem;
+//	const Elem * _elem;
 	Point _normal;
 };

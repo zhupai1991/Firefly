@@ -10,7 +10,9 @@ RayLine::RayLine() :
 
 RayLine::RayLine(const Point &p0, const Point &p1, Real lenght) :
 	LineSegment(p0, p1),
-	_normal(_normal),
+	_normal( (p1-p0).unit() ),
+	_p0(p0),
+	_p1(p1),
 	_lenght(lenght)
 {
 }
@@ -18,6 +20,8 @@ RayLine::RayLine(const Point &p0, const Point &p1, Real lenght) :
 RayLine::RayLine(const Point &p0, const Point &normal):
 	LineSegment(p0, p0+normal*100000),
 	_normal(normal),
+	_p0(p0),
+	_p1(p0+normal*100000),
 	_lenght(100000)
 {
 }

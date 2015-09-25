@@ -16,14 +16,16 @@ public RandomInterface
 
 public:
 	MonteCarloUserObject(const InputParameters & parameters);
-	int Which_SideelementIntersectedByLine(const RayLine& ray, SideElement * sideelement_i, vector<const SideElement*> sideelement_vec, Point point);
+	int Which_SideelementIntersectedByLine(RayLine& ray, SideElement * sideelement_i, vector<const SideElement*> sideelement_vec, Point point);
 	int Find_j_of_RDij(SideElement * sideelement_i, vector<const SideElement*> sideelement_vec);
 
 protected :
-	virtual void initialize(){};
+	virtual void initialize();
 	virtual void finalize(){};
 	virtual void execute();
 	virtual void threadJoin(const UserObject & uo){};
+
+	vector<SideElement*> _all_element;
 
 //	bool sideIntersectedByLine(const RayLine &ray, const Elem *side, Point &point);
 
