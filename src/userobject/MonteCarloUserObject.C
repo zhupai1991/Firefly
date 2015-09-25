@@ -52,31 +52,36 @@ void MonteCarloUserObject::initialize()
 
 void MonteCarloUserObject::execute()
 {
-	SideElement side_element(_current_elem, -_normals[0]);
+	vector<const Elem*> sideelement_vec;
+	int n_elem=sideelement_vec.size();
+	int j_of_RDij=-1;
+	float RD[n_elem][n_elem];
+	SideElement current_side_element(_current_elem, -_normals[0]);
+
+	int particle_count=1000000;
+	for(int j=0;j<particle_count;j++)
+	{
+		j_of_RDij=Find_j_of_RDij( &current_side_element, sideelement_vec);
+
+		if( j_of_RDij == -1 )
+			continue;
+
+		else
+			RD[current_side_element._elem->id()][j_of_RDij]++;
+	}
+
+	for(int i=0;i<particle_count;i++)
+	{
+		RD[current_side_element._elem->id()][i]/=particle_count;
+	}
+
+//	SideElement side_element(_current_elem, -_normals[0]);
 //
-	std::cout << side_element.SendRay()._normal << std::endl;
-//
-//	int particle_count=1000000;
-	vector<const Elem*> elem_vec;
-//	int n_elem=elem_vec.size();
-//	float RD[n_elem][n_elem];
-//
-//	for(int i=0;i<particle_count;i++)
-//
-//	vector<const Elem*> elem_vec;
+//	std::cout << side_element.SendRay()._normal << std::endl;
+
 //	elem_vec.push_back(_current_elem);
-//
-//	Point p;
-//	RayLine ray_line(Point(1, 0, 1), Point(0, 0, -1),10000);
-//	std::cout << ray_line.normal << std::endl;
-//	bool a=ray_line.sideIntersectedByLine(ray_line,elem_vec[0],p);
-//	std::cout << p << std::endl;
 
 }
-
-
-
-
 
 
 
@@ -117,15 +122,15 @@ int MonteCarloUserObject::Which_SideelementIntersectedByLine(RayLine& ray, SideE
 //	int k=0;
 //	bool charge=true;
 //	SideElement * elem= sideelement_i;
-//	const RayLine rayline_in;
-//	const RayLine rayline_out;
+//	RayLine * rayline_in;
+//	RayLine * rayline_out;
 //	Point p;
 //
 //	while (charge || (k < sideelement_i->MaxReflectCount) )
 //	{
-//		rayline_in=elem->SendRay();
+//		(*rayline_in)=elem->SendRay();
 //
-//		j=Which_SideelementIntersectedByLine(rayline_in, sideelement_i, sideelement_vec, p);
+//		j=Which_SideelementIntersectedByLine(*rayline_in, sideelement_i, sideelement_vec, p);
 //
 //		if(j==-1)
 //			return -1;
@@ -139,7 +144,7 @@ int MonteCarloUserObject::Which_SideelementIntersectedByLine(RayLine& ray, SideE
 //
 //		else if(MooseRandom::rand()<sideelement_vec[j]->Diffuse_Reflectivity)
 //		{
-//			rayline_out=sideelement_vec[j]->DiffuseReflectRay(rayline_in,p);
+//			(*rayline_out)=sideelement_vec[j]->DiffuseReflectRay(rayline_in,p);
 //			rayline_in=rayline_out;
 //			j_of_RDij=j;
 //			k++;
@@ -148,18 +153,20 @@ int MonteCarloUserObject::Which_SideelementIntersectedByLine(RayLine& ray, SideE
 //
 //		else
 //		{
-//			rayline_out=sideelement_vec[j]->MirrorsReflectRay(rayline_in,p);
+//			(*rayline_out)=sideelement_vec[j]->MirrorsReflectRay(rayline_in,p);
 //			rayline_in=rayline_out;
 //			j_of_RDij=j;
 //			k++;
-//			break;
+//			continue;
 //		}
 //	}
 //
 //	if(!charge)
 //		return j_of_RDij;
 //
-//	else if(k==sideelement_i->MaxReflectCount)
+//	if(k==sideelement_i->MaxReflectCount)
 //		return j_of_RDij;
 //
+//	else
+//		return -1;
 //}

@@ -68,7 +68,7 @@ RayLine SideElement::SendRay()
 
 }
 
-RayLine SideElement::DiffuseReflectRay(const RayLine* rayline, Point point)
+RayLine SideElement::DiffuseReflectRay(RayLine* rayline, Point point)
 {
 //	MooseRandom::seed(0);
 	Real theita = 2*pi*MooseRandom::rand();
@@ -119,7 +119,7 @@ RayLine SideElement::DiffuseReflectRay(const RayLine* rayline, Point point)
 
 }
 
-RayLine SideElement::MirrorsReflectRay(const RayLine* rayline, Point point)
+RayLine SideElement::MirrorsReflectRay(RayLine* rayline, Point point)
 {
 	Point normal_in=rayline->_normal;
 	Point normal_out=normal_in+_normal*(2*cos((_normal*normal_in)/(normal_in.size()*_normal.size())));

@@ -12,8 +12,8 @@ public:
 
 public:
 	RayLine SendRay();
-	RayLine DiffuseReflectRay(const RayLine * rayline, Point point);
-	RayLine MirrorsReflectRay(const RayLine * rayline, Point point);
+	RayLine DiffuseReflectRay(RayLine * rayline, Point point);
+	RayLine MirrorsReflectRay(RayLine * rayline, Point point);
 	Real Absorptivity;
 	Real Diffuse_Reflectivity;
 	Real Mirrors_Reflectivity;
