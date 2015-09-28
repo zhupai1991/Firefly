@@ -52,13 +52,13 @@ void MonteCarloUserObject::initialize()
 
 void MonteCarloUserObject::execute()
 {
-	vector<const Elem*> sideelement_vec;
+	vector<const SideElement*> sideelement_vec;
 	int n_elem=sideelement_vec.size();
 	int j_of_RDij=-1;
 	float RD[n_elem][n_elem];
 	SideElement current_side_element(_current_elem, -_normals[0]);
 
-	int particle_count=1000000;
+	int particle_count=10;
 	for(int j=0;j<particle_count;j++)
 	{
 		j_of_RDij=Find_j_of_RDij( &current_side_element, sideelement_vec);
@@ -115,58 +115,58 @@ int MonteCarloUserObject::Which_SideelementIntersectedByLine(RayLine& ray, SideE
 }
 
 
-//int MonteCarloUserObject::Find_j_of_RDij(SideElement * sideelement_i, vector<const SideElement*> sideelement_vec)
-//{
-//	int j=-1;
-//	int j_of_RDij;
-//	int k=0;
-//	bool charge=true;
-//	SideElement * elem= sideelement_i;
-//	RayLine * rayline_in;
-//	RayLine * rayline_out;
-//	Point p;
-//
-//	while (charge || (k < sideelement_i->MaxReflectCount) )
-//	{
-//		(*rayline_in)=elem->SendRay();
-//
-//		j=Which_SideelementIntersectedByLine(*rayline_in, sideelement_i, sideelement_vec, p);
-//
-//		if(j==-1)
-//			return -1;
-//
-//		else if(MooseRandom::rand()<sideelement_vec[j]->Absorptivity)
-//		{
-//			charge=false;
-//			j_of_RDij=j;
-//			break;
-//		}
-//
-//		else if(MooseRandom::rand()<sideelement_vec[j]->Diffuse_Reflectivity)
-//		{
-//			(*rayline_out)=sideelement_vec[j]->DiffuseReflectRay(rayline_in,p);
-//			rayline_in=rayline_out;
-//			j_of_RDij=j;
-//			k++;
-//			continue;
-//		}
-//
-//		else
-//		{
-//			(*rayline_out)=sideelement_vec[j]->MirrorsReflectRay(rayline_in,p);
-//			rayline_in=rayline_out;
-//			j_of_RDij=j;
-//			k++;
-//			continue;
-//		}
-//	}
-//
-//	if(!charge)
-//		return j_of_RDij;
-//
-//	if(k==sideelement_i->MaxReflectCount)
-//		return j_of_RDij;
-//
-//	else
-//		return -1;
-//}
+int MonteCarloUserObject::Find_j_of_RDij(SideElement * sideelement_i, vector<const SideElement*> sideelement_vec)
+{
+	int j=-1;
+	int j_of_RDij;
+	int k=0;
+	bool charge=true;
+	SideElement * elem= sideelement_i;
+	RayLine* rayline_in;
+	RayLine* rayline_out;
+	Point p;
+
+	while (charge || (k < sideelement_i->MaxReflectCount) )
+	{
+		(*rayline_in)=elem->SendRay();
+
+		j=Which_SideelementIntersectedByLine(*rayline_in, sideelement_i, sideelement_vec, p);
+
+		if(j==-1)
+			return -1;
+
+		else if(MooseRandom::rand()<sideelement_vec[j]->Absorptivity)
+		{
+			charge=false;
+			j_of_RDij=j;
+			break;
+		}
+
+		else if(MooseRandom::rand()<sideelement_vec[j]->Diffuse_Reflectivity)
+		{
+			(*rayline_out)=const_cast<SideElement*> (sideelement_vec[j])->DiffuseReflectRay(rayline_in,p);
+			rayline_in=rayline_out;
+			j_of_RDij=j;
+			k++;
+			continue;
+		}
+
+		else
+		{
+			(*rayline_out)=const_cast<SideElement*> (sideelement_vec[j])->MirrorsReflectRay(rayline_in,p);
+			rayline_in=rayline_out;
+			j_of_RDij=j;
+			k++;
+			continue;
+		}
+	}
+
+	if(!charge)
+		return j_of_RDij;
+
+	if(k==sideelement_i->MaxReflectCount)
+		return j_of_RDij;
+
+	else
+		return -1;
+}
