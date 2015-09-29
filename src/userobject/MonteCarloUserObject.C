@@ -52,35 +52,37 @@ void MonteCarloUserObject::initialize()
 
 void MonteCarloUserObject::execute()
 {
+	std::cout << "start" << std::endl;
 	vector<const SideElement*> sideelement_vec;
+	sideelement_vec.clear();
+	SideElement current_side_element(_current_elem, -_normals[0]);
+	sideelement_vec.push_back(&current_side_element);
 	int n_elem=sideelement_vec.size();
 	int j_of_RDij=-1;
-	float RD[n_elem][n_elem];
-	SideElement current_side_element(_current_elem, -_normals[0]);
+	float RD[n_elem][n_elem]={0};
 
-	int particle_count=10;
+	int particle_count=5;
 	for(int j=0;j<particle_count;j++)
 	{
+		cout << "11111111111111" << endl;
 		j_of_RDij=Find_j_of_RDij( &current_side_element, sideelement_vec);
-
+		cout << "22222222222222" << endl;
 		if( j_of_RDij == -1 )
 			continue;
 
 		else
-			RD[current_side_element._elem->id()][j_of_RDij]++;
+		{
+
+			RD[current_side_element._elem->id()][j_of_RDij]++;}
 	}
 
-	for(int i=0;i<particle_count;i++)
+	for(int i=0;i<n_elem;i++)
 	{
-		RD[current_side_element._elem->id()][i]/=particle_count;
+		cout << "skdjfasfhashfalsjflajf" << endl;
+//		RD[current_side_element._elem->id()][i]/=particle_count;
 	}
 
-//	SideElement side_element(_current_elem, -_normals[0]);
-//
-//	std::cout << side_element.SendRay()._normal << std::endl;
-
-//	elem_vec.push_back(_current_elem);
-
+	std::cout << "endmain" << std::endl;
 }
 
 
@@ -89,25 +91,24 @@ int MonteCarloUserObject::Which_SideelementIntersectedByLine(RayLine& ray, SideE
 {
 	int j_max=sideelement_vec.size();
 	int j_wanted=-1;
-	SideElement * elem= sideelement_i;
-	Point p=ray._p0;
+	Point pp=ray._p0;
 	point=ray._p1;
 
 	for(int j=0; j<j_max; j++)
 	{
-		if(sideelement_vec[j] == elem)
+		if(sideelement_vec[j] == sideelement_i)
 			continue;
 
-		if(!(ray.sideIntersectedByLine(sideelement_vec[j]->_elem,p)))
+		else if(!(ray.sideIntersectedByLine(sideelement_vec[j]->_elem,pp)))
 			continue;
 
-		else if((p-ray._p0).size()>(point-ray._p0).size())
+		else if((pp-ray._p0).size()>(point-ray._p0).size())
 			continue;
 
 		else
 		{
 			j_wanted=j;
-			point=p;
+			point=pp;
 		}
 	}
 
@@ -117,20 +118,21 @@ int MonteCarloUserObject::Which_SideelementIntersectedByLine(RayLine& ray, SideE
 
 int MonteCarloUserObject::Find_j_of_RDij(SideElement * sideelement_i, vector<const SideElement*> sideelement_vec)
 {
-	int j=-1;
-	int j_of_RDij;
+	int j=0;
+	int j_of_RDij=-1;
 	int k=0;
 	bool charge=true;
+	vector<const SideElement*> sideelement_ve=sideelement_vec;
 	SideElement * elem= sideelement_i;
 	RayLine* rayline_in;
 	RayLine* rayline_out;
-	Point p;
+	Point p(0);
 
 	while (charge || (k < sideelement_i->MaxReflectCount) )
 	{
 		(*rayline_in)=elem->SendRay();
 
-		j=Which_SideelementIntersectedByLine(*rayline_in, sideelement_i, sideelement_vec, p);
+		j=Which_SideelementIntersectedByLine(*rayline_in, sideelement_i, sideelement_ve, p);
 
 		if(j==-1)
 			return -1;
@@ -164,7 +166,7 @@ int MonteCarloUserObject::Find_j_of_RDij(SideElement * sideelement_i, vector<con
 	if(!charge)
 		return j_of_RDij;
 
-	if(k==sideelement_i->MaxReflectCount)
+	else if(k==sideelement_i->MaxReflectCount)
 		return j_of_RDij;
 
 	else
