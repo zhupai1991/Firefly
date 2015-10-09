@@ -24,6 +24,7 @@ public:
 	const Elem * _elem;
 
 	map<SideElement*, Real> _rd;
+
 protected:
 //	const Elem * _elem;
 	Point _normal;

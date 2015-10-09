@@ -7,7 +7,7 @@
 using namespace std;
 
 SideElement::SideElement(const Elem *elem, const Point normal) :
- Absorptivity(0.5),
+ Absorptivity(0.1),
  Diffuse_Reflectivity(0.5),
  Mirrors_Reflectivity(0.5),
  MaxReflectCount(10),
@@ -22,8 +22,8 @@ RayLine SideElement::SendRay()
 	Real theita = 2*pi*MooseRandom::rand();
 
 	unsigned int dim = _elem->dim();
-	cout << dim << endl;
-	if (dim == 3)
+//	cout << dim << endl;
+	if (dim == 2)
 	{
 		Point p = _elem->centroid();
 		Point O1 = p+_normal;
@@ -43,7 +43,7 @@ RayLine SideElement::SendRay()
 		}
 	}
 
-	else if (dim == 2)
+	else if (dim == 1)
 	{
 		Point p = _elem->centroid();
 		Point O1 = p+_normal;
@@ -58,8 +58,8 @@ RayLine SideElement::SendRay()
 
 		else
 		{
-			std::cout << (M-p).unit() << std::endl;
-			cout << "p:" <<p <<endl;
+//			std::cout << (M-p).unit() << std::endl;
+//			cout << "p:" <<p <<endl;
 			return RayLine(p,(M-p).unit());
 		}
 	}
@@ -79,7 +79,7 @@ RayLine SideElement::DiffuseReflectRay(RayLine* rayline, Point point)
 
 	unsigned int dim = _elem->dim();
 
-	if (dim == 3)
+	if (dim == 2)
 	{
 		Point O1 = point+_normal;
 		Real phi = acos(1 - 2*MooseRandom::rand());
@@ -98,7 +98,7 @@ RayLine SideElement::DiffuseReflectRay(RayLine* rayline, Point point)
 		}
 	}
 
-	else if (dim == 2)
+	else if (dim == 1)
 	{
 		Point O1 = point+_normal;
 
