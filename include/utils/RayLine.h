@@ -19,6 +19,7 @@ public:
 	Point _p1;
 //	Point & start(){return _p0;}
 	Real _lenght;
+	int _count;
 private:
 //	vector<SideElement*> path;
 

@@ -3,6 +3,8 @@
 
 #include "RayLine.h"
 #include "libmesh/elem.h"
+#include <map>
+using std::map;
 
 class SideElement
 {
@@ -21,7 +23,7 @@ public:
 	int MaxReflectCount;
 	const Elem * _elem;
 
-
+	map<SideElement*, Real> _rd;
 protected:
 //	const Elem * _elem;
 	Point _normal;

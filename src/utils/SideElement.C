@@ -22,6 +22,7 @@ RayLine SideElement::SendRay()
 	Real theita = 2*pi*MooseRandom::rand();
 
 	unsigned int dim = _elem->dim();
+	cout << dim << endl;
 	if (dim == 3)
 	{
 		Point p = _elem->centroid();
@@ -59,7 +60,6 @@ RayLine SideElement::SendRay()
 		{
 			std::cout << (M-p).unit() << std::endl;
 			cout << "p:" <<p <<endl;
-//			std::cout << RayLine(p,_normal).normal << std::endl;
 			return RayLine(p,(M-p).unit());
 		}
 	}

@@ -43,53 +43,71 @@ void MonteCarloUserObject::initialize()
            continue;
 
          Elem *elem_side = elem->side(side).get();
+         int bnd_id = bnd_info.boundary_id(elem, side);
+         if(bnd_id == 0)
+        	 _all_element.push_back(new SideElement(elem_side, Point(1,0,0)));
 
-         cout << bnd_info.boundary_id(elem, side) << endl;
+         else if(bnd_id == 1)
+        	 _all_element.push_back(new SideElement(elem_side, Point(0,1,0)));
+
+         else if(bnd_id == 2)
+        	 _all_element.push_back(new SideElement(elem_side, Point(-1,0,0)));
+
+         else if(bnd_id == 3)
+        	 _all_element.push_back(new SideElement(elem_side, Point(0,-1,0)));
+
+         else
+        	 mooseError("boundary id error.");
+
        }
      }
-//	_all_element.push_back();
+
+    cout << _all_element.size() << endl;
+
 }
 
 void MonteCarloUserObject::execute()
 {
 	std::cout << "start" << std::endl;
-	vector<const SideElement*> sideelement_vec;
-	sideelement_vec.clear();
-	SideElement current_side_element(_current_elem, -_normals[0]);
-	sideelement_vec.push_back(&current_side_element);
-	int n_elem=sideelement_vec.size();
-	int j_of_RDij=-1;
-	float RD[n_elem][n_elem]={0};
 
+	SideElement *current_side_element;//(_current_elem,  Point(1,0,0));
+    for(vector<SideElement *>::iterator it = _all_element.begin(); it != _all_element.end(); ++it)
+    {
+    	if((*it)->_elem == _current_elem)
+    		current_side_element = *it;
+    }
+
+    Real RD[_all_element.size()]={0};
+	int j_of_RDij=-1;
 	int particle_count=5;
+
 	for(int j=0;j<particle_count;j++)
 	{
 		cout << "11111111111111" << endl;
-		j_of_RDij=Find_j_of_RDij( &current_side_element, sideelement_vec);
+		j_of_RDij=Find_j_of_RDij( current_side_element, _all_element);
 		cout << "22222222222222" << endl;
 		if( j_of_RDij == -1 )
 			continue;
 
 		else
-		{
+			RD[j_of_RDij]++;
 
-			RD[current_side_element._elem->id()][j_of_RDij]++;}
 	}
 
-	for(int i=0;i<n_elem;i++)
+	for(int i=0;i<_all_element.size();i++)
 	{
-		cout << "skdjfasfhashfalsjflajf" << endl;
-//		RD[current_side_element._elem->id()][i]/=particle_count;
+//		cout << "skdjfasfhashfalsjflajf" << endl;
+		RD[i]/=particle_count;
 	}
 
 	std::cout << "endmain" << std::endl;
 }
 
 
-
-int MonteCarloUserObject::Which_SideelementIntersectedByLine(RayLine& ray, SideElement * sideelement_i, vector<const SideElement*> sideelement_vec, Point point)
+int MonteCarloUserObject::Which_SideelementIntersectedByLine(RayLine& ray, SideElement * sideelement_i, vector<SideElement*> sideelement_vec, Point point)
 {
 	int j_max=sideelement_vec.size();
+	cout << j_max << endl;
 	int j_wanted=-1;
 	Point pp=ray._p0;
 	point=ray._p1;
@@ -115,24 +133,23 @@ int MonteCarloUserObject::Which_SideelementIntersectedByLine(RayLine& ray, SideE
 	return j_wanted;
 }
 
-
-int MonteCarloUserObject::Find_j_of_RDij(SideElement * sideelement_i, vector<const SideElement*> sideelement_vec)
+int MonteCarloUserObject::Find_j_of_RDij(SideElement * sideelement_i, vector<SideElement*> sideelement_vec)
 {
 	int j=0;
 	int j_of_RDij=-1;
 	int k=0;
 	bool charge=true;
-	vector<const SideElement*> sideelement_ve=sideelement_vec;
-	SideElement * elem= sideelement_i;
+//	vector<SideElement*> sideelement_ve=sideelement_vec;
+//	SideElement * elem= sideelement_i;
 	RayLine* rayline_in;
 	RayLine* rayline_out;
-	Point p(0);
+	Point p(0,0,0);
 
 	while (charge || (k < sideelement_i->MaxReflectCount) )
 	{
-		(*rayline_in)=elem->SendRay();
+		(*rayline_in)=sideelement_i->SendRay();
 
-		j=Which_SideelementIntersectedByLine(*rayline_in, sideelement_i, sideelement_ve, p);
+		j=Which_SideelementIntersectedByLine(*rayline_in, sideelement_i, sideelement_vec, p);
 
 		if(j==-1)
 			return -1;
@@ -146,7 +163,7 @@ int MonteCarloUserObject::Find_j_of_RDij(SideElement * sideelement_i, vector<con
 
 		else if(MooseRandom::rand()<sideelement_vec[j]->Diffuse_Reflectivity)
 		{
-			(*rayline_out)=const_cast<SideElement*> (sideelement_vec[j])->DiffuseReflectRay(rayline_in,p);
+			(*rayline_out)=sideelement_vec[j]->DiffuseReflectRay(rayline_in,p);
 			rayline_in=rayline_out;
 			j_of_RDij=j;
 			k++;
@@ -155,7 +172,7 @@ int MonteCarloUserObject::Find_j_of_RDij(SideElement * sideelement_i, vector<con
 
 		else
 		{
-			(*rayline_out)=const_cast<SideElement*> (sideelement_vec[j])->MirrorsReflectRay(rayline_in,p);
+			(*rayline_out)=sideelement_vec[j]->MirrorsReflectRay(rayline_in,p);
 			rayline_in=rayline_out;
 			j_of_RDij=j;
 			k++;
