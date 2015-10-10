@@ -7,7 +7,7 @@
 using namespace std;
 
 SideElement::SideElement(const Elem *elem, const Point normal) :
- Absorptivity(0.1),
+ Absorptivity(1.0),
  Diffuse_Reflectivity(0.5),
  Mirrors_Reflectivity(0.5),
  MaxReflectCount(10),
