@@ -101,9 +101,11 @@ RayLine SideElement::DiffuseReflectRay(RayLine* rayline, Point point)
 	else if (dim == 1)
 	{
 		Point O1 = point+_normal;
+//		cout << "_normal:" << _normal << endl;
+//		cout << "O1:" << O1 << endl;
 
 		Point M(cos(theita),sin(theita));
-		M+=O1;
+		M=O1+M;
 
 		if((M-point).size()<TOLERANCE)
 		{
@@ -112,6 +114,9 @@ RayLine SideElement::DiffuseReflectRay(RayLine* rayline, Point point)
 
 		else
 		{
+//			cout << "M:" << M << endl;
+//			cout << "point:" << point << endl;
+//			cout << "(M-point).unit():" << (M-point).unit() << endl;
 			return RayLine(point,(M-point).unit());
 		}
 	}
@@ -126,7 +131,7 @@ RayLine SideElement::DiffuseReflectRay(RayLine* rayline, Point point)
 RayLine SideElement::MirrorsReflectRay(RayLine* rayline, Point point)
 {
 	Point normal_in=rayline->_normal;
-	Point normal_out=normal_in+_normal*(2*cos((_normal*normal_in)/(normal_in.size()*_normal.size())));
+	Point normal_out=normal_in-_normal*(2*(_normal*normal_in)/(normal_in.size()*_normal.size()));
 
 	return RayLine(point,normal_out);
 }
