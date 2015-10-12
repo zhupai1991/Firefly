@@ -10,17 +10,17 @@ class SideElement
 {
 
 public:
-	SideElement(const Elem * elem, const Point normal);
+	SideElement(const Elem *elem, const Point normal, Real absorptivity = 0.5, Real diffuse_reflectivity = 0.5, Real mirrors_reflectivity = 0.5);
 
 public:
-	RayLine SendRay();
-	RayLine DiffuseReflectRay(RayLine * rayline, Point point);
-	RayLine MirrorsReflectRay(RayLine * rayline, Point point);
-	Real Absorptivity;
-	Real Diffuse_Reflectivity;
-	Real Mirrors_Reflectivity;
-	Real RD();
-	int MaxReflectCount;
+	RayLine sendRay();
+	RayLine diffuseReflectRay(RayLine * rayline, Point point);
+	RayLine mirrorsReflectRay(RayLine * rayline, Point point);
+	Real _absorptivity;
+	Real _diffuse_reflectivity;
+	Real _mirrors_reflectivity;
+//	Real RD();
+//	int MaxReflectCount;
 	const Elem * _elem;
 
 	map<SideElement*, Real> _rd;

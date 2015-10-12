@@ -20,6 +20,7 @@ public:
 	int Find_j_of_RDij(SideElement * sideelement_i, vector<SideElement*> sideelement_vec);
 
 protected :
+	virtual void initialSetup();
 	virtual void initialize();
 	virtual void finalize(){};
 	virtual void execute();
@@ -27,6 +28,10 @@ protected :
 
 	vector<SideElement*> _all_element;
 
+	int _max_reflect_count;
+	int _absorptivity;
+	int _diffuse_reflectivity;
+	int _mirrors_reflectivity;
 //	bool sideIntersectedByLine(const RayLine &ray, const Elem *side, Point &point);
 
 

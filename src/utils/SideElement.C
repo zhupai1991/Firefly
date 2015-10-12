@@ -6,17 +6,16 @@
 //#include "RandomInterface.h"
 using namespace std;
 
-SideElement::SideElement(const Elem *elem, const Point normal) :
- Absorptivity(1.0),
- Diffuse_Reflectivity(0.5),
- Mirrors_Reflectivity(0.5),
- MaxReflectCount(10),
+SideElement::SideElement(const Elem *elem, const Point normal, Real absorptivity, Real diffuse_reflectivity, Real mirrors_reflectivity) :
+ _absorptivity(absorptivity),
+ _diffuse_reflectivity(diffuse_reflectivity),
+ _mirrors_reflectivity(mirrors_reflectivity),
  _elem(elem),
  _normal(normal)
 {
 }
 
-RayLine SideElement::SendRay()
+RayLine SideElement::sendRay()
 {
 //	MooseRandom::seed(0);
 	Real theita = 2*pi*MooseRandom::rand();
@@ -72,7 +71,7 @@ RayLine SideElement::SendRay()
 
 }
 
-RayLine SideElement::DiffuseReflectRay(RayLine* rayline, Point point)
+RayLine SideElement::diffuseReflectRay(RayLine* rayline, Point point)
 {
 //	MooseRandom::seed(0);
 	Real theita = 2*pi*MooseRandom::rand();
@@ -128,7 +127,7 @@ RayLine SideElement::DiffuseReflectRay(RayLine* rayline, Point point)
 
 }
 
-RayLine SideElement::MirrorsReflectRay(RayLine* rayline, Point point)
+RayLine SideElement::mirrorsReflectRay(RayLine* rayline, Point point)
 {
 	Point normal_in=rayline->_normal;
 	Point normal_out=normal_in-_normal*(2*(_normal*normal_in)/(normal_in.size()*_normal.size()));

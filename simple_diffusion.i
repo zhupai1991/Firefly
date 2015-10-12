@@ -13,8 +13,13 @@
 [UserObjects]
   [./montecarlo]
     type = MonteCarloUserObject
-    boundary = 'left'
+    boundary = '0 1 2 3'
+    max_reflect_count = 30
+    absorptivity=0.0
+    diffuse_reflectivity=0.5
+    mirrors_reflectivity=0.5
   [../]
+
 []
 
 [Kernels]
