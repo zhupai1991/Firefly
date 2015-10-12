@@ -21,11 +21,12 @@ RayLine SideElement::sendRay()
 	Real theita = 2*pi*MooseRandom::rand();
 
 	unsigned int dim = _elem->dim();
-//	cout << dim << endl;
+	Point p = _elem->centroid();
+	Point O1 = p+_normal;
+
+
 	if (dim == 2)
 	{
-		Point p = _elem->centroid();
-		Point O1 = p+_normal;
 		Real phi = acos(1 - 2*MooseRandom::rand());
 
 		Point M(cos(theita)*sin(phi),sin(theita)*sin(phi),cos(phi));
@@ -44,9 +45,6 @@ RayLine SideElement::sendRay()
 
 	else if (dim == 1)
 	{
-		Point p = _elem->centroid();
-		Point O1 = p+_normal;
-
 		Point M(cos(theita),sin(theita));
 		M+=O1;
 
@@ -65,7 +63,6 @@ RayLine SideElement::sendRay()
 
 	else // 1D
 	{
-		Point p = _elem->centroid();
 		return RayLine(p,p+100000*_normal);
 	}
 

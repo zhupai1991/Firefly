@@ -27,10 +27,10 @@ InputParameters validParams<MonteCarloUserObject>()
 MonteCarloUserObject::MonteCarloUserObject(const InputParameters & parameters) :
 	SideUserObject(parameters),
 	RandomInterface(parameters, *parameters.get<FEProblem *>("_fe_problem"), parameters.get<THREAD_ID>("_tid"), false),
-	_max_reflect_count(getParam<int>("max_reflect_count")),
-	_absorptivity(getParam<Real>("absorptivity")),
-	_diffuse_reflectivity(getParam<Real>("diffuse_reflectivity")),
-	_mirrors_reflectivity(getParam<Real>("mirrors_reflectivity"))
+	_max_reflect_count(getParam<int> ("max_reflect_count")),
+	_absorptivity(getParam<Real> ("absorptivity")),
+	_diffuse_reflectivity(getParam<Real> ("diffuse_reflectivity")),
+	_mirrors_reflectivity(getParam<Real> ("mirrors_reflectivity"))
 {
 }
 
@@ -192,6 +192,7 @@ int MonteCarloUserObject::Which_SideelementIntersectedByLine(RayLine& ray, SideE
 	{
 //		if(sideelement_vec[j] == sideelement_i)
 		if( (sideelement_vec[j]->_elem->centroid()-sideelement_i->_elem->centroid()).size()<TOLERANCE )
+//		if( ((sideelement_vec[j]->_elem->centroid()-sideelement_i->_elem->centroid()).size() < TOLERANCE) || ((sideelement_vec[j]->_normal)*(sideelement_i->_normal) > TOLERANCE)  )
 			continue;
 
 		else if(!(ray.sideIntersectedByLine(sideelement_vec[j]->_elem,pp)))
@@ -227,8 +228,6 @@ int MonteCarloUserObject::Find_j_of_RDij(SideElement * sideelement_i, vector<Sid
 	rayline_in=(*current_elem).sendRay();
 	while (charge && (k < _max_reflect_count) )
 	{
-
-
 //		cout << "rayline_in:" << rayline_in << endl;
 
 		j=Which_SideelementIntersectedByLine( rayline_in, current_elem, sideelement_vec, p);
