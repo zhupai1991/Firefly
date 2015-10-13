@@ -127,7 +127,6 @@ void MonteCarloUserObject::initialize()
 
 void MonteCarloUserObject::execute()
 {
-
 	Real RD[_all_element.size()]={0};
 
 	SideElement current_side_element(_current_side_elem,  -_normals[0], _absorptivity, _diffuse_reflectivity, _mirrors_reflectivity);
@@ -163,7 +162,7 @@ void MonteCarloUserObject::execute()
 		RD[i]=RD[i]/_particle_count;
 		cout << "side_element_centre:" << _all_element[i]->_elem->centroid() << "        RD:" << RD[i] << endl;
 	}
-
+//	mooseError("产生随机位置时不支持的网格形状：");
 //	for (int i=0 ;i<1 ; i++)
 //	{
 //		int jjjjjjj=Find_j_of_RDij(cse, _all_element);

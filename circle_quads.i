@@ -12,7 +12,7 @@
     type = MonteCarloUserObject
     boundary = 1
     max_reflect_count = 10
-    particle_count=100000
+    particle_count=10000
     absorptivity=1.0
     diffuse_reflectivity=0.5
     mirrors_reflectivity=0.5
