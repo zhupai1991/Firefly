@@ -18,6 +18,7 @@ InputParameters validParams<MonteCarloUserObject>()
 	InputParameters params = validParams<SideUserObject>();
 	params += validParams<RandomInterface>();
 	params.addParam<int> ("max_reflect_count", 10, "最大反射次数");
+	params.addParam<int> ("particle_count", 1000000, "单元发射粒子数");
 	params.addParam<Real> ("absorptivity", 0.5, "吸收率");
 	params.addParam<Real> ("diffuse_reflectivity", 0.5, "漫反射百分比");
 	params.addParam<Real> ("mirrors_reflectivity", 0.5, "镜反射百分比");
@@ -28,6 +29,7 @@ MonteCarloUserObject::MonteCarloUserObject(const InputParameters & parameters) :
 	SideUserObject(parameters),
 	RandomInterface(parameters, *parameters.get<FEProblem *>("_fe_problem"), parameters.get<THREAD_ID>("_tid"), false),
 	_max_reflect_count(getParam<int> ("max_reflect_count")),
+	_particle_count(getParam<int> ("particle_count")),
 	_absorptivity(getParam<Real> ("absorptivity")),
 	_diffuse_reflectivity(getParam<Real> ("diffuse_reflectivity")),
 	_mirrors_reflectivity(getParam<Real> ("mirrors_reflectivity"))
@@ -75,8 +77,9 @@ void MonteCarloUserObject::initialSetup()
 
 	       }
 	     }
-		cout << this << endl;
+//		cout << this << endl;
 }
+
 void MonteCarloUserObject::initialize()
 {
 //    vector<BoundaryName> boundary = getParam<std::vector<BoundaryName> >("boundary");
@@ -126,7 +129,6 @@ void MonteCarloUserObject::execute()
 {
 
 	Real RD[_all_element.size()]={0};
-	int p_count=100000;
 
 	SideElement current_side_element(_current_side_elem,  -_normals[0], _absorptivity, _diffuse_reflectivity, _mirrors_reflectivity);
 	SideElement * cse = &current_side_element;
@@ -141,7 +143,7 @@ void MonteCarloUserObject::execute()
 //	cout << "jjj:" << jjj << endl;
 //	cout << "point:" << _all_element[jjj]->_elem->centroid() << endl;
 
-	for (int i=0;i<p_count;i++)
+	for (int i=0;i<_particle_count;i++)
 	{
 		int j_of_RDij=-1;
 
@@ -158,8 +160,8 @@ void MonteCarloUserObject::execute()
 	cout << "当前单元中心点：" << _current_side_elem->centroid() <<endl;
 	for (int i=0;i<_all_element.size();i++)
 	{
-		RD[i]=RD[i]/p_count;
-		cout << "_all_element:" << _all_element[i]->_elem->centroid() << "        RD:" << RD[i] << endl;
+		RD[i]=RD[i]/_particle_count;
+		cout << "side_element_centre:" << _all_element[i]->_elem->centroid() << "        RD:" << RD[i] << endl;
 	}
 
 //	for (int i=0 ;i<1 ; i++)

@@ -29,11 +29,10 @@ protected :
 	vector<SideElement*> _all_element;
 
 	int _max_reflect_count;
+	int _particle_count;
 	Real _absorptivity;
 	Real _diffuse_reflectivity;
 	Real _mirrors_reflectivity;
-//	bool sideIntersectedByLine(const RayLine &ray, const Elem *side, Point &point);
-
 
 };
 
