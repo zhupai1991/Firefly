@@ -1,9 +1,9 @@
 [Mesh]
   type = GeneratedMesh
   dim = 3
-  nx = 3
-  ny = 3
-  nz = 3
+  nx = 1
+  ny = 1
+  nz = 1
 []
 
 [Variables]
@@ -16,7 +16,7 @@
     type = MonteCarloUserObject
     boundary = '0 1 2 3 4 5'
     max_reflect_count = 10
-    particle_count=10000
+    particle_count=10000000
     absorptivity=1.0
     diffuse_reflectivity=0.5
     mirrors_reflectivity=0.5

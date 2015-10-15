@@ -24,6 +24,7 @@ RayLine SideElement::sendRay()
 	Real xi=1.0;
 	Real eta=1.0;
 	Real theita = 2*pi*MooseRandom::rand();
+	Real phi = acos(1 - 2*MooseRandom::rand());
 
 	unsigned int dim = _elem->dim();
 	Point p = _elem->centroid();
@@ -53,7 +54,6 @@ RayLine SideElement::sendRay()
 		p=FEInterface::map(dim, FEType(), _elem, Point( xi, eta));
 		Point O1 = p+_normal;
 //		cout << p << endl;
-		Real phi = acos(1 - 2*MooseRandom::rand());
 
 		Point M(cos(theita)*sin(phi),sin(theita)*sin(phi),cos(phi));
 		M+=O1;
@@ -73,10 +73,11 @@ RayLine SideElement::sendRay()
 	{
 		xi=MooseRandom::rand();
 		p=FEInterface::map(dim, FEType(), _elem, Point( (2*xi-1.0), 0.0));
-//		cout << p << endl;
 		Point O1 = p+_normal;
+//		cout << "p:" << p << endl;
 
-		Point M(cos(theita),sin(theita));
+		Point M(sin(theita)*sin(phi),cos(phi));
+//		Point M(cos(theita),sin(theita));
 		M+=O1;
 
 		if((M-p).size()<TOLERANCE)
@@ -86,8 +87,8 @@ RayLine SideElement::sendRay()
 
 		else
 		{
-//			std::cout << (M-p).unit() << std::endl;
-//			cout << "p:" <<p <<endl;
+//			cout << "(M-p).unit():" << (M-p).unit() << endl;
+//			cout << "p:" << p <<endl;
 			return RayLine(p,(M-p).unit());
 		}
 	}
@@ -102,13 +103,13 @@ RayLine SideElement::diffuseReflectRay(RayLine* rayline, Point point)
 {
 //	MooseRandom::seed(0);
 	Real theita = 2*pi*MooseRandom::rand();
+	Real phi = acos(1 - 2*MooseRandom::rand());
 
 	unsigned int dim = _elem->dim();
 
 	if (dim == 2)
 	{
 		Point O1 = point+_normal;
-		Real phi = acos(1 - 2*MooseRandom::rand());
 
 		Point M(cos(theita)*sin(phi),sin(theita)*sin(phi),cos(phi));
 		M+=O1;
@@ -130,7 +131,8 @@ RayLine SideElement::diffuseReflectRay(RayLine* rayline, Point point)
 //		cout << "_normal:" << _normal << endl;
 //		cout << "O1:" << O1 << endl;
 
-		Point M(cos(theita),sin(theita));
+//		Point M(cos(theita),sin(theita));
+		Point M(sin(theita)*sin(phi),cos(phi));
 		M=O1+M;
 
 		if((M-point).size()<TOLERANCE)

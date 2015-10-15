@@ -1,8 +1,8 @@
 [Mesh]
   type = GeneratedMesh
   dim = 2
-  nx = 5
-  ny = 5
+  nx = 1
+  ny = 1
 []
 
 [Variables]
@@ -16,7 +16,7 @@
     boundary = '0 1 2 3'
     max_reflect_count = 10
     particle_count=10000
-    absorptivity=0.5
+    absorptivity=1.0
     diffuse_reflectivity=0.5
     mirrors_reflectivity=0.5
   [../]

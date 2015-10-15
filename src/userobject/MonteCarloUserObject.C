@@ -227,6 +227,7 @@ int MonteCarloUserObject::Find_j_of_RDij(SideElement * sideelement_i, vector<Sid
 	Point p(0,0,0);
 
 	rayline_in=(*current_elem).sendRay();
+//	cout << rayline_in._normal << endl;
 	while (charge && (k < _max_reflect_count) )
 	{
 //		cout << "rayline_in:" << rayline_in << endl;
