@@ -18,6 +18,87 @@ SideElement::SideElement(const Elem *elem, const Point normal, Real absorptivity
 {
 }
 
+//RayLine SideElement::sendRay()
+//{
+////	MooseRandom::seed(0);
+//	Real xi=1.0;
+//	Real eta=1.0;
+//	Real theita = 2*pi*MooseRandom::rand();
+//	Real phi = acos(1 - 2*MooseRandom::rand());
+//
+//	unsigned int dim = _elem->dim();
+//	Point p = _elem->centroid();
+//
+////	cout << p ;
+//
+//	if (dim == 2)
+//	{
+//		if (_elem->type() == TRI3)
+//		{
+//			while(xi+eta>1.0)
+//			{
+//				xi=MooseRandom::rand();
+//				eta=MooseRandom::rand();
+//			}
+//		}
+//
+//		else if (_elem->type() == QUAD4)
+//		{
+//			xi=2*MooseRandom::rand()-1;
+//			eta=2*MooseRandom::rand()-1;
+//		}
+//
+//		else
+//			mooseError("产生随机位置时不支持的网格形状：" << _elem->type());
+//
+//		p=FEInterface::map(dim, FEType(), _elem, Point( xi, eta));
+//		Point O1 = p+_normal;
+////		cout << p << endl;
+//
+//		Point M(cos(theita)*sin(phi),sin(theita)*sin(phi),cos(phi));
+//		M+=O1;
+//
+//		if((M-p).size()<TOLERANCE)
+//		{
+//			return RayLine(p,_normal);
+//		}
+//
+//		else
+//		{
+//			return RayLine(p,(M-p).unit());
+//		}
+//	}
+//
+//	else if (dim == 1)
+//	{
+//		xi=MooseRandom::rand();
+//		p=FEInterface::map(dim, FEType(), _elem, Point( (2*xi-1.0), 0.0));
+//		Point O1 = p+_normal;
+////		cout << "p:" << p << endl;
+//
+//		Point M(sin(theita)*sin(phi),cos(phi));
+////		Point M(cos(theita),sin(theita));
+//		M+=O1;
+//
+//		if((M-p).size()<TOLERANCE)
+//		{
+//			return RayLine(p,_normal);
+//		}
+//
+//		else
+//		{
+////			cout << "(M-p).unit():" << (M-p).unit() << endl;
+////			cout << "p:" << p <<endl;
+//			return RayLine(p,(M-p).unit());
+//		}
+//	}
+//
+//	else // 1D
+//	{
+//		return RayLine(p,p+100000*_normal);
+//	}
+//}
+
 RayLine SideElement::sendRay()
 {
 //	MooseRandom::seed(0);
@@ -29,8 +110,6 @@ RayLine SideElement::sendRay()
 	unsigned int dim = _elem->dim();
 	Point p = _elem->centroid();
 
-//	cout << p ;
-
 	if (dim == 2)
 	{
 		if (_elem->type() == TRI3)
@@ -40,20 +119,31 @@ RayLine SideElement::sendRay()
 				xi=MooseRandom::rand();
 				eta=MooseRandom::rand();
 			}
+		p=FEInterface::map(dim, FEType(), _elem, Point( xi, eta));
 		}
 
 		else if (_elem->type() == QUAD4)
 		{
-			xi=2*MooseRandom::rand()-1;
-			eta=2*MooseRandom::rand()-1;
+			Real S1_percent=((*(_elem->get_node(1)))-(*(_elem->get_node(0))))*((*(_elem->get_node(2)))-(*(_elem->get_node(0))))/(2.0*_elem->volume());
+			Real Rs=MooseRandom::rand();
+
+			while(xi+eta>1.0)
+			{
+				xi=MooseRandom::rand();
+				eta=MooseRandom::rand();
+			}
+
+			if(Rs<S1_percent)
+				p=(1-xi-eta)*(*(_elem->get_node(0)))+xi*(*(_elem->get_node(1)))+eta*(*(_elem->get_node(2)));
+
+			else
+				p=(1-xi-eta)*(*(_elem->get_node(0)))+xi*(*(_elem->get_node(2)))+eta*(*(_elem->get_node(3)));
 		}
 
 		else
 			mooseError("产生随机位置时不支持的网格形状：" << _elem->type());
 
-		p=FEInterface::map(dim, FEType(), _elem, Point( xi, eta));
 		Point O1 = p+_normal;
-//		cout << p << endl;
 
 		Point M(cos(theita)*sin(phi),sin(theita)*sin(phi),cos(phi));
 		M+=O1;
@@ -74,7 +164,6 @@ RayLine SideElement::sendRay()
 		xi=MooseRandom::rand();
 		p=FEInterface::map(dim, FEType(), _elem, Point( (2*xi-1.0), 0.0));
 		Point O1 = p+_normal;
-//		cout << "p:" << p << endl;
 
 		Point M(sin(theita)*sin(phi),cos(phi));
 //		Point M(cos(theita),sin(theita));
@@ -87,8 +176,6 @@ RayLine SideElement::sendRay()
 
 		else
 		{
-//			cout << "(M-p).unit():" << (M-p).unit() << endl;
-//			cout << "p:" << p <<endl;
 			return RayLine(p,(M-p).unit());
 		}
 	}
