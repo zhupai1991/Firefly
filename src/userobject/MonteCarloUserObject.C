@@ -6,9 +6,12 @@
 #include "libmesh/string_to_enum.h"
 #include "libmesh/quadrature_gauss.h"
 #include "libmesh/plane.h"
+#include "MooseRandom.h"
 
 #include "RayLine.h"
-#include "MooseRandom.h"
+#include "UserDefinedMesh.h"
+#include "UserDefinedElem.h"
+#include "UserDefinedSideElem.h"
 
 using namespace std;
 using namespace Firefly;
@@ -37,48 +40,143 @@ MonteCarloUserObject::MonteCarloUserObject(const InputParameters & parameters) :
 {
 }
 
+//void MonteCarloUserObject::initialSetup()
+//{
+//	vector<BoundaryName> boundary = getParam<std::vector<BoundaryName> >("boundary");
+//	std::set<BoundaryID> boundary_ids;
+//	for(vector<BoundaryName>::iterator it = boundary.begin(); it != boundary.end(); ++it)
+//	{
+//		BoundaryID id = _mesh.getBoundaryID(*it);
+//		boundary_ids.insert(id);
+//		//    	std::cout << id <<endl;
+//	}
+//
+//	MeshBase & mesh = _mesh.getMesh();
+//	const BoundaryInfo &bnd_info = mesh.get_boundary_info();
+//	MeshBase::const_element_iterator   el  = mesh.active_elements_begin();
+//	const MeshBase::const_element_iterator end_el = mesh.active_elements_end();
+//	for ( ; el != end_el ; ++el)
+//	{
+//		const Elem *elem = *el;
+//
+//		for (unsigned int side=0; side < elem->n_sides(); ++side)
+//		{
+//			if (elem->neighbor(side))
+//				continue;
+//
+//			Elem *elem_side = elem->build_side(side).release();
+//			int bnd_id = bnd_info.boundary_id(elem, side);
+//			if(find(boundary_ids.begin(), boundary_ids.end(), bnd_id) == boundary_ids.end())
+//				continue;
+//
+//			unsigned int dim = _mesh.dimension();
+//			FEType fe_type(Utility::string_to_enum<Order>("CONSTANT"), Utility::string_to_enum<FEFamily>("MONOMIAL"));
+//			FEBase * _fe_face = (FEBase::build(dim, fe_type)).release();
+//			QGauss * _qface = new QGauss(dim-1, FIRST);
+//			_fe_face->attach_quadrature_rule(_qface);
+//			_fe_face->reinit(elem, side);
+//			const std::vector<Point> normals = _fe_face->get_normals();
+//
+//			_all_element.push_back(new SideElement(elem_side, -normals[0], _absorptivity, _diffuse_reflectivity, _mirrors_reflectivity));
+//
+//		}
+//	}
+//	//		cout << this << endl;
+//}
+
 void MonteCarloUserObject::initialSetup()
 {
-	  vector<BoundaryName> boundary = getParam<std::vector<BoundaryName> >("boundary");
-	    std::set<BoundaryID> boundary_ids;
-	    for(vector<BoundaryName>::iterator it = boundary.begin(); it != boundary.end(); ++it)
-	    {
-	    	BoundaryID id = _mesh.getBoundaryID(*it);
-	    	boundary_ids.insert(id);
-	//    	std::cout << id <<endl;
-	    }
+	vector<BoundaryName> boundary = getParam<std::vector<BoundaryName> >("boundary");
+	std::set<BoundaryID> boundary_ids;
+	for(vector<BoundaryName>::iterator it = boundary.begin(); it != boundary.end(); ++it)
+	{
+		BoundaryID id = _mesh.getBoundaryID(*it);
+		boundary_ids.insert(id);
+	}
 
-	    MeshBase & mesh = _mesh.getMesh();
-	    const BoundaryInfo &bnd_info = mesh.get_boundary_info();
-	    MeshBase::const_element_iterator   el  = mesh.active_elements_begin();
-	    const MeshBase::const_element_iterator end_el = mesh.active_elements_end();
-	    for ( ; el != end_el ; ++el)
-	     {
-	       const Elem *elem = *el;
+	int count_sideelement = 0;
 
-	       for (unsigned int side=0; side < elem->n_sides(); ++side)
-	       {
-	         if (elem->neighbor(side))
-	           continue;
+	MeshBase & mesh = _mesh.getMesh();
+	UserDefinedMesh * mymesh = new UserDefinedMesh;  //**************<--这里有new***************//
 
-	         Elem *elem_side = elem->build_side(side).release();
-	         int bnd_id = bnd_info.boundary_id(elem, side);
-	         if(find(boundary_ids.begin(), boundary_ids.end(), bnd_id) == boundary_ids.end())
-	        	 continue;
+	const BoundaryInfo &bnd_info = mesh.get_boundary_info();
+//	MeshBase::const_element_iterator el = mesh.active_elements_begin();
+//	const MeshBase::const_element_iterator end_el = mesh.active_elements_end();
+	int nelems = mesh.n_elem();
 
-	         unsigned int dim = _mesh.dimension();
-	         FEType fe_type(Utility::string_to_enum<Order>("CONSTANT"), Utility::string_to_enum<FEFamily>("MONOMIAL"));
-	         FEBase * _fe_face = (FEBase::build(dim, fe_type)).release();
-	         QGauss * _qface = new QGauss(dim-1, FIRST);
-	         _fe_face->attach_quadrature_rule(_qface);
-	         _fe_face->reinit(elem, side);
-	         const std::vector<Point> normals = _fe_face->get_normals();
+	mymesh->_userDefinedElem.resize(nelems);
+	for (int nelem =0; nelem<nelems; nelem++)
+	{
+		UserDefinedElem * newelem = new UserDefinedElem;    //**************<--这里有new***************//
+		mymesh->_userDefinedElem[nelem] = newelem;
+	}
 
-	         _all_element.push_back(new SideElement(elem_side, -normals[0], _absorptivity, _diffuse_reflectivity, _mirrors_reflectivity));
+	for (int nelem =0; nelem<nelems; nelem++)
+	{
+		const Elem * elem = mesh.elem(nelem);
+		UserDefinedElem * myelem = mymesh->_userDefinedElem[nelem];
+//		mymesh->_userDefinedElem[nelem]->_elem = elem;
+		myelem->_elem = elem;
+		int nsides = mesh.elem(nelem)->n_sides();
+//		mymesh->_userDefinedElem[nelem]->_userDefinedSideElem.resize(nsides);
+		myelem->_userDefinedSideElem.resize(nsides);
+		for (int nside=0; nside < nsides; nside++)
+		{
+			UserDefinedSideElem * newsideelem = new UserDefinedSideElem;    //**************<--这里有new***************//
+//			mymesh->_userDefinedElem[nelem]->_userDefinedSideElem[nside] = newsideelem;
+			myelem->_userDefinedSideElem[nside] = newsideelem;
+		}
+//		mymesh->_userDefinedElem[nelem]->_haveWhichSideElement.resize(nsides, -1);
+		myelem->_haveWhichSideElement.resize(nsides, -1);
 
-	       }
-	     }
-//		cout << this << endl;
+		for (int nside=0; nside < nsides; nside++)
+		{
+			UserDefinedSideElem * mysideelem = mymesh->_userDefinedElem[nelem]->_userDefinedSideElem[nside];
+//			mymesh->_userDefinedElem[nelem]->_userDefinedSideElem[nside]._elem = elem->side(nside);
+//			mymesh->_userDefinedElem[nelem]->_userDefinedSideElem[nside]._left_element = mymesh->_userDefinedElem[nelem];
+			mysideelem->_elem = elem->side(nside).release();
+			mysideelem->_left_element = mymesh->_userDefinedElem[nelem];
+
+			if (elem->neighbor(nside))
+			{
+//				mymesh->_userDefinedElem[nelem]->_userDefinedSideElem[nside]._right_element = mymesh->_userDefinedElem[elem->neighbor(nside)->_id];
+				mysideelem->_right_element = mymesh->_userDefinedElem[elem->neighbor(nside)->id()];
+			}
+
+			else
+			{
+//				mymesh->_userDefinedElem[nelem]->_userDefinedSideElem[nside]._right_element = NULL;
+				mysideelem->_right_element = NULL;
+
+				Elem *elem_side = elem->build_side(nside).release();
+				int bnd_id = bnd_info.boundary_id(elem, nside);
+				if(find(boundary_ids.begin(), boundary_ids.end(), bnd_id) == boundary_ids.end())
+					continue;
+
+				unsigned int dim = _mesh.dimension();
+				FEType fe_type(Utility::string_to_enum<Order>("CONSTANT"), Utility::string_to_enum<FEFamily>("MONOMIAL"));
+				FEBase * _fe_face = (FEBase::build(dim, fe_type)).release();
+				QGauss * _qface = new QGauss(dim-1, FIRST);
+				_fe_face->attach_quadrature_rule(_qface);
+				_fe_face->reinit(elem, nside);
+				const std::vector<Point> normals = _fe_face->get_normals();
+				SideElement * newsideelement = new SideElement(elem_side, -normals[0], _absorptivity, _diffuse_reflectivity, _mirrors_reflectivity);    //**************<--这里有new***************//
+				newsideelement->_belong_to_which_elem = myelem;
+				newsideelement->_is_which_sideelem = nside;
+				_all_element.push_back(newsideelement);
+				myelem->_haveWhichSideElement[nside] = count_sideelement;
+				count_sideelement++;
+
+				delete _fe_face;
+				delete _qface;
+			}
+		}
+	}
+
+//
+//
+
+	//		cout << this << endl;
 }
 
 void MonteCarloUserObject::initialize()
@@ -517,57 +615,3 @@ int findFinalSideId(RayLine & ray_line, const MeshBase & mesh, Point & point, ve
 	}
 }
 }
-
-//void recursivelyFindElementsIntersectedByLine(const RayLine & ray_line, const Elem * current_elem, int incoming_side, std::vector<Elem *> & intersected_elems)
-//{
-//  int intersected_side = sideIntersectedByLine(current_elem, incoming_side, ray_line);
-//
-//  if (intersected_side != -1) // -1 means that we didn't find any side
-//  {
-//    Elem * neighbor = current_elem->neighbor(intersected_side);
-//
-//    if (neighbor)
-//    {
-//      intersected_elems.push_back(neighbor);
-//
-//      int incoming_side = sideNeighborIsOn(neighbor, current_elem);
-//
-//      recursivelyFindElementsIntersectedByLine(ray_line, neighbor, incoming_side, intersected_elems);
-//
-//      return;
-//    }
-//
-//    else
-//    {
-//    	return current_elem->side(intersected_side).
-//    }
-//
-//  }
-//  return;
-//}
-//
-//void elementsIntersectedByLine(const Point & p0, const Point & p1, const MeshBase & mesh, std::vector<Elem *> & intersected_elems)
-//{
-//  // Make sure our list is clear
-//  intersected_elems.clear();
-//
-//  // Grab a PointLocator for finding the first element:
-//  const PointLocatorBase & pl = mesh.point_locator();
-//
-//  // Find the starting element
-//  const Elem * first_elem = pl(p0);
-//
-//  // Quick return if can't even locate the first element.
-//  if (!first_elem)
-//    return;
-//
-//  intersected_elems.push_back(const_cast<Elem *>(first_elem));
-//
-//  // Make a LineSegment object out of our two points for ease:
-//  RayLine ray_line = RayLine(p0, p1);
-//
-//  // Find 'em!
-//  recursivelyFindElementsIntersectedByLine(ray_line, first_elem, -1, intersected_elems);
-//}
-//
-//}

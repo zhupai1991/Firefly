@@ -6,6 +6,8 @@
 #include <map>
 using std::map;
 
+class UserDefinedElem;
+
 class SideElement
 {
 
@@ -19,11 +21,11 @@ public:
 	Real _absorptivity;
 	Real _diffuse_reflectivity;
 	Real _mirrors_reflectivity;
-//	Real RD();
-//	int MaxReflectCount;
 	const Elem * _elem;
 
 	map<SideElement*, Real> _rd;
+	UserDefinedElem* _belong_to_which_elem;
+	int _is_which_sideelem;
 
 protected:
 //	const Elem * _elem;
