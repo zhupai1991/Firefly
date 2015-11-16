@@ -16,6 +16,7 @@ public:
 	RayLine();
 	RayLine(const Point &p0, const Point &p1, Real lenght);
 	RayLine(const Point &p0, const Point &normal);
+	RayLine(const Point &p0, const Point &p1, int i);
 	bool sideIntersectedByLine(const Elem* side, Point& point);
 	bool sideIntersectedByLine(SideElement* side, Point& point);
 	bool intersect (const RayLine & l, Point & intersect_p) const;

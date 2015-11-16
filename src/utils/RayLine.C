@@ -28,6 +28,15 @@ RayLine::RayLine(const Point &p0, const Point &normal):
 {
 }
 
+RayLine::RayLine(const Point &p0, const Point &p1, int i):
+	LineSegment(p0, p1),
+	_normal( (p1-p0).unit() ),
+	_p0(p0),
+	_p1(p1),
+	_lenght( (p1-p0).size() )
+{
+}
+
 bool RayLine::sideIntersectedByLine(const Elem* side, Point& point)
 {
 	bool inter(false);

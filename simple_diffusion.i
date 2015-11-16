@@ -1,8 +1,8 @@
 [Mesh]
   type = GeneratedMesh
   dim = 2
-  nx = 1
-  ny = 1
+  nx = 80
+  ny = 80
 []
 
 [Variables]

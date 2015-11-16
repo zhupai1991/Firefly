@@ -7,6 +7,11 @@
 #include <vector>
 using std::vector;
 
+namespace Firefly
+{
+int findFinalSideId(RayLine & ray_line, const MeshBase & mesh, Point & point, vector<SideElement*> sideelement_vec);
+}
+
 class RayLine;
 
 class MonteCarloUserObject :
@@ -27,7 +32,6 @@ protected :
 	virtual void threadJoin(const UserObject & uo){};
 
 	vector<SideElement*> _all_element;
-
 	int _max_reflect_count;
 	int _particle_count;
 	Real _absorptivity;
