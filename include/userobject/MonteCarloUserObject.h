@@ -9,7 +9,7 @@ using std::vector;
 
 namespace Firefly
 {
-int findFinalSideId(RayLine & ray_line, const MeshBase & mesh, Point & point, vector<SideElement*> sideelement_vec);
+int findFinalSideId(RayLine & ray_line, Point & point, SideElement * sideelement);
 }
 
 class RayLine;

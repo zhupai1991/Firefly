@@ -161,10 +161,11 @@ void MonteCarloUserObject::initialSetup()
 				_fe_face->reinit(elem, nside);
 				const std::vector<Point> normals = _fe_face->get_normals();
 				SideElement * newsideelement = new SideElement(elem_side, -normals[0], _absorptivity, _diffuse_reflectivity, _mirrors_reflectivity);    //**************<--这里有new***************//
-				newsideelement->_belong_to_which_elem = myelem;
-				newsideelement->_is_which_sideelem = nside;
 				_all_element.push_back(newsideelement);
+				_all_element[count_sideelement]->_belong_to_which_elem = myelem;
+				_all_element[count_sideelement]->_is_which_sideelem = nside;
 				myelem->_haveWhichSideElement[nside] = count_sideelement;
+				cout << count_sideelement << endl;
 				count_sideelement++;
 
 				delete _fe_face;
@@ -228,11 +229,13 @@ void MonteCarloUserObject::execute()
 {
 	Real RD[_all_element.size()]={0};
 
-	SideElement current_side_element(_current_side_elem,  -_normals[0], _absorptivity, _diffuse_reflectivity, _mirrors_reflectivity);
-	SideElement * cse = &current_side_element;
+//	SideElement current_side_element(_current_side_elem,  -_normals[0], _absorptivity, _diffuse_reflectivity, _mirrors_reflectivity);
+//	SideElement * cse = &current_side_element;
+	SideElement * cse = _all_element[0];
 
 	for (int i=0;i<_particle_count;i++)
 	{
+//		cout << "hahah" << endl;
 		int j_of_RDij=-1;
 
 		j_of_RDij=Find_j_of_RDij(cse, _all_element);
@@ -245,7 +248,8 @@ void MonteCarloUserObject::execute()
 	}
 
 //	cout << endl << "单元计算结果：" << endl;
-	cout << "当前单元中心点：" << _current_side_elem->centroid() <<endl;
+//	cout << "当前单元中心点：" << _current_side_elem->centroid() <<endl;
+	cout << "当前单元中心点：" << _all_element[0]->_elem->centroid() <<endl;
 	for (int i=0;i<_all_element.size();i++)
 	{
 		RD[i]=RD[i]/_particle_count;
@@ -389,7 +393,7 @@ int MonteCarloUserObject::Find_j_of_RDij(SideElement * sideelement_i, vector<Sid
 	{
 //		cout << "rayline_in:" << rayline_in << endl;
 
-		j=findFinalSideId(rayline_in, _mesh.getMesh(), p, sideelement_vec);
+		j=findFinalSideId(rayline_in, p, current_elem);
 //		cout << "j:" << j << endl;
 //		cout << "p:" << p << endl;
 
@@ -502,13 +506,13 @@ int sideIntersectedByLine(const Elem * elem, int not_side, RayLine & ray_line, P
  *
  * Returns -1 if the neighbor can't be found to be a neighbor
  */
-int sideNeighborIsOn(const Elem * elem, const Elem * neighbor)
+int sideNeighborIsOn(const UserDefinedElem * elem, UserDefinedElem * neighbor)
 {
-  unsigned int n_sides = elem->n_sides();
+  unsigned int n_sides = elem->_elem->n_sides();
 
   for (unsigned int i=0; i<n_sides; i++)
   {
-    if (elem->neighbor(i) == neighbor)
+    if (elem->_userDefinedSideElem[i]->_right_element == neighbor)
       return i;
   }
 
@@ -525,46 +529,16 @@ int pointInWhichSide(const Elem * elem, Point & point)
 			return i;
 	}
 	return -1;
-
-//	unsigned int dim = elem->dim();
-//	unsigned int n_sides = elem->n_sides();
-//
-//	for (unsigned int i=0; i<n_sides; i++)
-//	{
-//		UniquePtr<Elem> side_elem = elem->side(i);
-//
-//		if (dim == 3)
-//		{
-//			if( (*side_elem).contains_point(point) )
-//				return i;
-//		}
-//		else if (dim == 2)
-//		{
-//			RayLine ray_line_side(side_elem->point(0), side_elem->point(1), 1);
-//			if(ray_line_side.contains_point(point) )
-//			{
-////				cout << "iiiiiii:" << i << endl;
-//				return i;
-//			}
-//		}
-//		else // 1D
-//		{
-//			if( (side_elem->point(0)-point).size() <TOLERANCE )
-//				return i;
-//		}
-//	}
-//	return -1;
 }
 
-int findFinalSideId(RayLine & ray_line, const MeshBase & mesh, Point & point, vector<SideElement*> sideelement_vec)
+int findFinalSideId(RayLine & ray_line, Point & point, SideElement * sideelement)
 //Point findFinalSideId(RayLine & ray_line, const MeshBase & mesh, Point & point)
 
 {
 	int incoming_side = -1;
-	Elem * neighbor;
-	const PointLocatorBase & pl = mesh.point_locator();
-//	const Elem * first_elem = pl(ray_line._p0+(1e-4)*ray_line._normal);
-	const Elem * first_elem = pl(ray_line._p0);
+	UserDefinedElem * neighbor;
+
+	const UserDefinedElem * first_elem = sideelement->_belong_to_which_elem;
 
 	if (!first_elem)
 	{
@@ -574,36 +548,29 @@ int findFinalSideId(RayLine & ray_line, const MeshBase & mesh, Point & point, ve
 
 	else
 	{
-		const Elem * current_elem = first_elem;
-		incoming_side = pointInWhichSide(current_elem, ray_line._p0);
+		const UserDefinedElem * current_elem = first_elem;
+		incoming_side = sideelement->_is_which_sideelem;
+//		cout << incoming_side << endl;
 		while (true)
 		{
-			int intersected_side = sideIntersectedByLine(current_elem, incoming_side, ray_line, point);
+			int intersected_side = sideIntersectedByLine(current_elem->_elem, incoming_side, ray_line, point);
+//	cout << "hhhhhhhh:" << endl;
 //			cout << "intersecedside:" << intersected_side << endl;
 
 			if (intersected_side != -1) // -1 means that we didn't find any side
 			{
-				neighbor = current_elem->neighbor(intersected_side);
+				neighbor = current_elem->_userDefinedSideElem[intersected_side]->_right_element;
 
 //				cout << "neighbor" << endl;
 				if (neighbor)
 				{
-					incoming_side = sideNeighborIsOn(neighbor, current_elem);
+					incoming_side = sideNeighborIsOn(current_elem, neighbor);
 					current_elem = neighbor;
 				}
 
 				else
 				{
-//					UniquePtr<Elem> side_elem = current_elem->side(intersected_side);
-//					return side_elem->centroid();
-					for (int j=0;j<sideelement_vec.size();j++)
-					{
-						if(sideelement_vec[j]->_elem->contains_point(point,TOLERANCE))
-							return j;
-					}
-
-//					cout << current_elem->side(intersected_side)->id() << endl;
-//					return current_elem->side(intersected_side)->id();
+					return current_elem->_haveWhichSideElement[intersected_side];
 				}
 			}
 			else
@@ -615,3 +582,151 @@ int findFinalSideId(RayLine & ray_line, const MeshBase & mesh, Point & point, ve
 	}
 }
 }
+
+//namespace Firefly
+//{
+//
+//int sideIntersectedByLine(const Elem * elem, int not_side, RayLine & ray_line, Point & intersection_point)
+//{
+//	unsigned int n_sides = elem->n_sides();
+//
+//	// A Point to pass to the intersection method
+//	//  Point intersection_point;
+//
+//	// Whether or not they intersect
+//	bool intersect = false;
+//
+//	unsigned int dim = elem->dim();
+//
+//	for (unsigned int i=0; i<n_sides; i++)
+//	{
+//		if (static_cast<int>(i) == not_side) // Don't search the "not_side"
+//			continue;
+//
+//		// Get a simplified side element
+//		UniquePtr<Elem> side_elem = elem->side(i);
+//
+//		if (dim == 3)
+//		{
+//			// Make a plane out of the first three nodes on the side
+//			Plane plane(side_elem->point(0), side_elem->point(1), side_elem->point(2));
+//
+//			// See if they intersect
+//			intersect = ray_line.intersect(plane, intersection_point);
+//		}
+//		else if (dim == 2)
+//		{
+//			// Make a Line Segment out of the first two nodes on the side
+//			RayLine ray_line_side(side_elem->point(0), side_elem->point(1), 1);
+//
+//			// See if they intersect
+//			intersect = ray_line.intersect(ray_line_side, intersection_point);
+//		}
+//		else // 1D
+//		{
+//			// See if the line segment contains the point
+//			intersect = ray_line.contains_point(side_elem->point(0));
+//
+//			// If it does then save off that one point as the intersection point
+//			if (intersect)
+//				intersection_point = side_elem->point(0);
+//		}
+//
+//		if (intersect)
+//			if (side_elem->contains_point(intersection_point))
+//				return i;
+//	}
+//
+//	// Didn't find one
+//	return -1;
+//}
+//
+///**
+// * Returns the side number for elem that neighbor is on
+// *
+// * Returns -1 if the neighbor can't be found to be a neighbor
+// */
+//int sideNeighborIsOn(const Elem * elem, const Elem * neighbor)
+//{
+//  unsigned int n_sides = elem->n_sides();
+//
+//  for (unsigned int i=0; i<n_sides; i++)
+//  {
+//    if (elem->neighbor(i) == neighbor)
+//      return i;
+//  }
+//
+//  return -1;
+//}
+//
+//int pointInWhichSide(const Elem * elem, Point & point)
+//{
+//	unsigned int n_sides = elem->n_sides();
+//
+//	for (unsigned int i=0; i<n_sides; i++)
+//	{
+//		if( (*(elem->side(i))).contains_point(point) )
+//			return i;
+//	}
+//	return -1;
+//}
+//
+//int findFinalSideId(RayLine & ray_line, const MeshBase & mesh, Point & point, vector<SideElement*> sideelement_vec)
+////Point findFinalSideId(RayLine & ray_line, const MeshBase & mesh, Point & point)
+//
+//{
+//	int incoming_side = -1;
+//	Elem * neighbor;
+//	const PointLocatorBase & pl = mesh.point_locator();
+////	const Elem * first_elem = pl(ray_line._p0+(1e-4)*ray_line._normal);
+//	const Elem * first_elem = pl(ray_line._p0);
+//
+//	if (!first_elem)
+//	{
+//		cout << "first_elem" << endl;
+//		return -1;
+//	}
+//
+//	else
+//	{
+//		const Elem * current_elem = first_elem;
+//		incoming_side = pointInWhichSide(current_elem, ray_line._p0);
+//		while (true)
+//		{
+//			int intersected_side = sideIntersectedByLine(current_elem, incoming_side, ray_line, point);
+////			cout << "intersecedside:" << intersected_side << endl;
+//
+//			if (intersected_side != -1) // -1 means that we didn't find any side
+//			{
+//				neighbor = current_elem->neighbor(intersected_side);
+//
+////				cout << "neighbor" << endl;
+//				if (neighbor)
+//				{
+//					incoming_side = sideNeighborIsOn(neighbor, current_elem);
+//					current_elem = neighbor;
+//				}
+//
+//				else
+//				{
+////					UniquePtr<Elem> side_elem = current_elem->side(intersected_side);
+////					return side_elem->centroid();
+//					for (int j=0;j<sideelement_vec.size();j++)
+//					{
+//						if(sideelement_vec[j]->_elem->contains_point(point,TOLERANCE))
+//							return j;
+//					}
+//
+////					cout << current_elem->side(intersected_side)->id() << endl;
+////					return current_elem->side(intersected_side)->id();
+//				}
+//			}
+//			else
+//			{
+////				cout << "else" << endl;
+//				return -1;
+//			}
+//		}
+//	}
+//}
+//}
