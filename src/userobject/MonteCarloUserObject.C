@@ -97,7 +97,7 @@ void MonteCarloUserObject::initialSetup()
 	int count_sideelement = 0;
 
 	MeshBase & mesh = _mesh.getMesh();
-	UserDefinedMesh * mymesh = new UserDefinedMesh;  //**************<--这里有new***************//
+	UserDefinedMesh * mymesh = new UserDefinedMesh(_mesh);  //**************<--这里有new***************//
 
 	const BoundaryInfo &bnd_info = mesh.get_boundary_info();
 //	MeshBase::const_element_iterator el = mesh.active_elements_begin();

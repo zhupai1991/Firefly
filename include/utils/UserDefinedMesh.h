@@ -8,15 +8,16 @@
 
 using std::vector;
 using libMesh::Mesh;
+class MooseMesh;
 
 class UserDefinedMesh
 {
 public:
 //	UserDefinedElem * Pointlocator( Point & point);
-
+	UserDefinedMesh(const MooseMesh &mesh);
 	vector<UserDefinedElem * > _userDefinedElem;
 
-	const Mesh * _mesh;
+	const MooseMesh &_mesh;
 
 protected:
 

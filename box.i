@@ -24,6 +24,7 @@
 
 []
 
+
 [Kernels]
   [./diff]
     type = Diffusion

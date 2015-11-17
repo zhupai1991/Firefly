@@ -1,6 +1,6 @@
 #include "UserDefinedMesh.h"
 #include "UserDefinedElem.h"
-
+#include "MooseMesh.h"
 //UserDefinedElem * Pointlocator( Point & point)
 //{
 //	int n_elem = _UserDefinedElem.size();
@@ -10,3 +10,9 @@
 //		return _UserDefinedElem[i];
 //	}
 //}
+
+UserDefinedMesh::UserDefinedMesh(const MooseMesh &mesh) :
+ _mesh(mesh)
+{
+
+}
