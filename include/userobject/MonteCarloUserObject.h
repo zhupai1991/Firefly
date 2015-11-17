@@ -5,7 +5,9 @@
 #include "RandomInterface.h"
 #include "SideElement.h"
 #include <vector>
+#include <set>
 using std::vector;
+using std::set;
 
 namespace Firefly
 {
@@ -38,6 +40,9 @@ protected :
 	Real _diffuse_reflectivity;
 	Real _mirrors_reflectivity;
 	int _n;
+
+	set<SubdomainID> _block_ids;
+	bool ElemHaveNeighborInBlock(Elem * elem, set<SubdomainID> block_ids);
 
 };
 

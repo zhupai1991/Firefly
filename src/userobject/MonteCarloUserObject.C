@@ -26,6 +26,8 @@ InputParameters validParams<MonteCarloUserObject>()
 	params.addParam<Real> ("absorptivity", 0.5, "吸收率");
 	params.addParam<Real> ("diffuse_reflectivity", 0.5, "漫反射百分比");
 	params.addParam<Real> ("mirrors_reflectivity", 0.5, "镜反射百分比");
+	params.addParam<std::vector<SubdomainName> >("block", "The list of boundary IDs from the mesh where this boundary condition applies");
+
 	return params;
 }
 
@@ -37,7 +39,14 @@ MonteCarloUserObject::MonteCarloUserObject(const InputParameters & parameters) :
 	_absorptivity(getParam<Real> ("absorptivity")),
 	_diffuse_reflectivity(getParam<Real> ("diffuse_reflectivity")),
 	_mirrors_reflectivity(getParam<Real> ("mirrors_reflectivity"))
+
 {
+	vector<SubdomainName> block = getParam<std::vector<SubdomainName> >("block");
+	for(vector<SubdomainName>::iterator it = block.begin(); it != block.end(); ++it)
+	{
+		SubdomainID id = _mesh.getSubdomainID(*it);
+		_block_ids.insert(id);
+	}
 }
 
 //void MonteCarloUserObject::initialSetup()
@@ -137,15 +146,11 @@ void MonteCarloUserObject::initialSetup()
 			mysideelem->_elem = elem->side(nside).release();
 			mysideelem->_left_element = mymesh->_userDefinedElem[nelem];
 
-			if (elem->neighbor(nside))
-			{
-//				mymesh->_userDefinedElem[nelem]->_userDefinedSideElem[nside]._right_element = mymesh->_userDefinedElem[elem->neighbor(nside)->_id];
+			if( ElemHaveNeighborInBlock(elem->neighbor(nside), _block_ids) )
 				mysideelem->_right_element = mymesh->_userDefinedElem[elem->neighbor(nside)->id()];
-			}
 
 			else
 			{
-//				mymesh->_userDefinedElem[nelem]->_userDefinedSideElem[nside]._right_element = NULL;
 				mysideelem->_right_element = NULL;
 
 				Elem *elem_side = elem->build_side(nside).release();
@@ -171,12 +176,96 @@ void MonteCarloUserObject::initialSetup()
 				delete _fe_face;
 				delete _qface;
 			}
+
+//			bool chargeneighbor = false;
+//			if (elem->neighbor(nside))
+//			{
+//				for(unsigned int blkid = 0; blkid<_block_ids.size(); blkid++)
+//				{
+//					if(elem->neighbor(nside)->id() == _block_ids[blkid])
+//					{
+////						mymesh->_userDefinedElem[nelem]->_userDefinedSideElem[nside]._right_element = mymesh->_userDefinedElem[elem->neighbor(nside)->_id];
+//						mysideelem->_right_element = mymesh->_userDefinedElem[elem->neighbor(nside)->id()];
+//						chargeneighbor = true;
+//						break;
+//					}
+//					else
+//						continue;
+//				}
+//			}
+//
+//			else
+//			{
+//				chargeneighbor = false;
+//			}
+//
+//			if (chargeneighbor == false)
+//			{
+////				mymesh->_userDefinedElem[nelem]->_userDefinedSideElem[nside]._right_element = NULL;
+//				mysideelem->_right_element = NULL;
+//
+//				Elem *elem_side = elem->build_side(nside).release();
+//				int bnd_id = bnd_info.boundary_id(elem, nside);
+//				if(find(boundary_ids.begin(), boundary_ids.end(), bnd_id) == boundary_ids.end())
+//					continue;
+//
+//				unsigned int dim = _mesh.dimension();
+//				FEType fe_type(Utility::string_to_enum<Order>("CONSTANT"), Utility::string_to_enum<FEFamily>("MONOMIAL"));
+//				FEBase * _fe_face = (FEBase::build(dim, fe_type)).release();
+//				QGauss * _qface = new QGauss(dim-1, FIRST);
+//				_fe_face->attach_quadrature_rule(_qface);
+//				_fe_face->reinit(elem, nside);
+//				const std::vector<Point> normals = _fe_face->get_normals();
+//				SideElement * newsideelement = new SideElement(elem_side, -normals[0], _absorptivity, _diffuse_reflectivity, _mirrors_reflectivity);    //**************<--这里有new***************//
+//				_all_element.push_back(newsideelement);
+//				_all_element[count_sideelement]->_belong_to_which_elem = myelem;
+//				_all_element[count_sideelement]->_is_which_sideelem = nside;
+//				myelem->_haveWhichSideElement[nside] = count_sideelement;
+////				cout << count_sideelement << endl;
+//				count_sideelement++;
+//
+//				delete _fe_face;
+//				delete _qface;
+//			}
+//
+//			else
+//			{
+//				continue;
+//			}
 		}
 	}
-
+//	cout << "all:" << _all_element.size() << endl;
 	_n=0;
 //	MooseRandom::seed(0.7);
+}
 
+bool MonteCarloUserObject::ElemHaveNeighborInBlock(Elem * elem, set<SubdomainID> block_ids)
+{
+	if (elem)
+	{
+		set<SubdomainID>::iterator it;
+		for(it = block_ids.begin(); it != block_ids.end(); it++)
+		{
+//			cout << "elem->id:" << elem->processor_id() << endl;
+//			cout << "*it:" << *it << endl;
+			if(elem->processor_id() == *it)
+			{
+				return true;
+			}
+
+			else
+				continue;
+		}
+//		cout << "hhhh" << endl;
+		return false;
+//		return true;
+	}
+
+	else
+	{
+//		cout << "hehehe" << endl;
+		return false;
+	}
 }
 
 void MonteCarloUserObject::initialize()
@@ -252,8 +341,8 @@ void MonteCarloUserObject::execute()
 	for (int i=0;i<_all_element.size();i++)
 	{
 		RD[i]=RD[i]/_particle_count;
-//		cout << "side_element_centre:" << _all_element[i]->_elem->centroid() << "        RD:" << RD[i] << endl;
-		cout << RD[i] << endl;
+		cout << "side_element_centre:" << _all_element[i]->_elem->centroid() << "        RD:" << RD[i] << endl;
+//		cout << RD[i] << endl;
 	}
 //	mooseError("产生随机位置时不支持的网格形状：");
 
