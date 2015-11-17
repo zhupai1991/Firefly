@@ -37,6 +37,7 @@ protected :
 	Real _absorptivity;
 	Real _diffuse_reflectivity;
 	Real _mirrors_reflectivity;
+	int _n;
 
 };
 

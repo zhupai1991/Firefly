@@ -165,7 +165,7 @@ void MonteCarloUserObject::initialSetup()
 				_all_element[count_sideelement]->_belong_to_which_elem = myelem;
 				_all_element[count_sideelement]->_is_which_sideelem = nside;
 				myelem->_haveWhichSideElement[nside] = count_sideelement;
-				cout << count_sideelement << endl;
+//				cout << count_sideelement << endl;
 				count_sideelement++;
 
 				delete _fe_face;
@@ -174,10 +174,9 @@ void MonteCarloUserObject::initialSetup()
 		}
 	}
 
-//
-//
+	_n=0;
+//	MooseRandom::seed(0.7);
 
-	//		cout << this << endl;
 }
 
 void MonteCarloUserObject::initialize()
@@ -231,11 +230,11 @@ void MonteCarloUserObject::execute()
 
 //	SideElement current_side_element(_current_side_elem,  -_normals[0], _absorptivity, _diffuse_reflectivity, _mirrors_reflectivity);
 //	SideElement * cse = &current_side_element;
-	SideElement * cse = _all_element[0];
+
+	SideElement * cse = _all_element[_n];
 
 	for (int i=0;i<_particle_count;i++)
 	{
-//		cout << "hahah" << endl;
 		int j_of_RDij=-1;
 
 		j_of_RDij=Find_j_of_RDij(cse, _all_element);
@@ -247,15 +246,18 @@ void MonteCarloUserObject::execute()
 			RD[j_of_RDij]=RD[j_of_RDij]+1.0;
 	}
 
-//	cout << endl << "单元计算结果：" << endl;
+	cout << endl << "单元计算结果：" << endl;
 //	cout << "当前单元中心点：" << _current_side_elem->centroid() <<endl;
-	cout << "当前单元中心点：" << _all_element[0]->_elem->centroid() <<endl;
+	cout << "当前单元中心点：" << _all_element[_n]->_elem->centroid() <<endl;
 	for (int i=0;i<_all_element.size();i++)
 	{
 		RD[i]=RD[i]/_particle_count;
 //		cout << "side_element_centre:" << _all_element[i]->_elem->centroid() << "        RD:" << RD[i] << endl;
+		cout << RD[i] << endl;
 	}
 //	mooseError("产生随机位置时不支持的网格形状：");
+
+	_n++;
 
 //	RayLine rayline=RayLine(_current_side_elem->centroid()-(1e-4)*_normals[0], -_normals[0]);
 //	cout << "_current_side_elem->centroid():" << _current_side_elem->centroid() << endl;
@@ -394,13 +396,14 @@ int MonteCarloUserObject::Find_j_of_RDij(SideElement * sideelement_i, vector<Sid
 //		cout << "rayline_in:" << rayline_in << endl;
 
 		j=findFinalSideId(rayline_in, p, current_elem);
+
 //		cout << "j:" << j << endl;
 //		cout << "p:" << p << endl;
 
 		if(j==-1)
 			return -1;
 
-		else if(MooseRandom::rand()<sideelement_vec[j]->_absorptivity)
+		else if(MooseRandom::rand()<=sideelement_vec[j]->_absorptivity)
 		{
 //			cout << "Absorptivity" << endl;
 			charge=false;
@@ -408,7 +411,7 @@ int MonteCarloUserObject::Find_j_of_RDij(SideElement * sideelement_i, vector<Sid
 			break;
 		}
 
-		else if(MooseRandom::rand()<sideelement_vec[j]->_diffuse_reflectivity)
+		else if(MooseRandom::rand()<=sideelement_vec[j]->_diffuse_reflectivity)
 		{
 //			cout << "Diffuse_Reflectivity" << endl;
 			rayline_out=sideelement_vec[j]->diffuseReflectRay(ray_in,p);
@@ -493,7 +496,7 @@ int sideIntersectedByLine(const Elem * elem, int not_side, RayLine & ray_line, P
 		}
 
 		if (intersect)
-			if (side_elem->contains_point(intersection_point))
+			if (side_elem->contains_point(intersection_point, 1e-12))
 				return i;
 	}
 
@@ -508,12 +511,12 @@ int sideIntersectedByLine(const Elem * elem, int not_side, RayLine & ray_line, P
  */
 int sideNeighborIsOn(const UserDefinedElem * elem, UserDefinedElem * neighbor)
 {
-  unsigned int n_sides = elem->_elem->n_sides();
+  unsigned int n_sides = neighbor->_elem->n_sides();
 
   for (unsigned int i=0; i<n_sides; i++)
   {
-    if (elem->_userDefinedSideElem[i]->_right_element == neighbor)
-      return i;
+	  if (neighbor->_userDefinedSideElem[i]->_right_element == elem)
+		  return i;
   }
 
   return -1;
@@ -533,7 +536,6 @@ int pointInWhichSide(const Elem * elem, Point & point)
 
 int findFinalSideId(RayLine & ray_line, Point & point, SideElement * sideelement)
 //Point findFinalSideId(RayLine & ray_line, const MeshBase & mesh, Point & point)
-
 {
 	int incoming_side = -1;
 	UserDefinedElem * neighbor;
@@ -551,11 +553,10 @@ int findFinalSideId(RayLine & ray_line, Point & point, SideElement * sideelement
 		const UserDefinedElem * current_elem = first_elem;
 		incoming_side = sideelement->_is_which_sideelem;
 //		cout << incoming_side << endl;
-		while (true)
+		bool charge = true;
+		while (charge)
 		{
 			int intersected_side = sideIntersectedByLine(current_elem->_elem, incoming_side, ray_line, point);
-//	cout << "hhhhhhhh:" << endl;
-//			cout << "intersecedside:" << intersected_side << endl;
 
 			if (intersected_side != -1) // -1 means that we didn't find any side
 			{
@@ -564,6 +565,7 @@ int findFinalSideId(RayLine & ray_line, Point & point, SideElement * sideelement
 //				cout << "neighbor" << endl;
 				if (neighbor)
 				{
+//					cout << "intersecedside:" << intersected_side << endl;
 					incoming_side = sideNeighborIsOn(current_elem, neighbor);
 					current_elem = neighbor;
 				}
@@ -580,6 +582,7 @@ int findFinalSideId(RayLine & ray_line, Point & point, SideElement * sideelement
 			}
 		}
 	}
+	return -1;
 }
 }
 
