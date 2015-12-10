@@ -2,6 +2,7 @@
 #include "Moose.h"
 #include "AppFactory.h"
 #include "MonteCarloUserObject.h"
+#include "MooseSyntax.h"
 //#include "ModulesApp.h"
 
 template<>

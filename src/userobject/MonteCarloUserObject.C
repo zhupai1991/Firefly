@@ -7,6 +7,7 @@
 #include "libmesh/quadrature_gauss.h"
 #include "libmesh/plane.h"
 #include "MooseRandom.h"
+#include "MooseMesh.h"
 
 #include "RayLine.h"
 #include "UserDefinedMesh.h"
